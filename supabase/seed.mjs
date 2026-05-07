@@ -5,12 +5,22 @@ const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 
 const supabase = createClient(SUPABASE_URL, ANON_KEY);
 
-// ─── USER IDs (match AuthContext.jsx DEMO_USERS) ─────────────────────────────
-const PMO_USER_ID    = 'ad68f966-c6cf-46fc-96d1-1c4e7b0dae48'; // Sarah Jenkins
-const PMO_USER_2_ID  = 'cd68f966-c6cf-46fc-96d1-1c4e7b0dae50'; // Rahul Sharma
-const JPMORGAN_CLIENT_ID  = 'bd68f966-c6cf-46fc-96d1-1c4e7b0dae49'; // Michael Brown
-const GOLDMAN_CLIENT_ID   = 'dd68f966-c6cf-46fc-96d1-1c4e7b0dae51'; // David Kim
-const MICROSOFT_CLIENT_ID = 'ed68f966-c6cf-46fc-96d1-1c4e7b0dae52'; // Priya Mehta
+// Must match the password formula used in SeedPage.jsx
+async function getOrCreateAuthUser(email, name, role) {
+  const pw = email.replace('@demo.com', '').replace(/[^a-zA-Z0-9]/g, '') + '_EmbarkGCC2025!';
+  const { data: up, error: upErr } = await supabase.auth.signUp({
+    email,
+    password: pw,
+    options: { data: { name, role } }
+  });
+  if (up?.user?.id && !upErr) return up.user.id;
+  
+  const { data: si } = await supabase.auth.signInWithPassword({ email, password: pw });
+  if (si?.user?.id) return si.user.id;
+  throw new Error(`Cannot auth ${email}`);
+}
+
+let PMO_USER_ID, PMO_USER_2_ID, JPMORGAN_CLIENT_ID, GOLDMAN_CLIENT_ID, MICROSOFT_CLIENT_ID;
 
 // GCC 6-stage gate checklist — actual deliverables Embark PMO verifies
 const STAGE_GATES = {
@@ -55,7 +65,14 @@ async function seed() {
   await clearAllTables();
 
   // ── 1. USERS ──────────────────────────────────────────────────────────────
-  console.log('\n👤 Upserting demo users...');
+  console.log('\n👤 Creating Auth users and upserting to public.users...');
+  
+  PMO_USER_ID         = await getOrCreateAuthUser('pmo@demo.com', 'Sarah Jenkins', 'PMO');
+  PMO_USER_2_ID       = await getOrCreateAuthUser('pmo2@demo.com', 'Rahul Sharma', 'PMO');
+  JPMORGAN_CLIENT_ID  = await getOrCreateAuthUser('client@demo.com', 'Michael Brown', 'Client');
+  GOLDMAN_CLIENT_ID   = await getOrCreateAuthUser('client2@demo.com', 'David Kim', 'Client');
+  MICROSOFT_CLIENT_ID = await getOrCreateAuthUser('client3@demo.com', 'Priya Mehta', 'Client');
+
   const { error: userErr } = await supabase.from('users').upsert([
     { id: PMO_USER_ID,         name: 'Sarah Jenkins',  email: 'pmo@demo.com',     role: 'PMO',    phone: '+91-9876540001' },
     { id: PMO_USER_2_ID,       name: 'Rahul Sharma',   email: 'pmo2@demo.com',    role: 'PMO',    phone: '+91-9876540002' },
