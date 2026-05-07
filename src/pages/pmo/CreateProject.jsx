@@ -141,7 +141,7 @@ export default function CreateProject() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   <div className="form-group">
                     <label className="label">Project Name *</label>
-                    <input className="input-field" required value={form.project_name} onChange={e => setForm({ ...form, project_name: e.target.value })} placeholder="e.g. Acme Corp India GCC" />
+                    <input className="input-field" required value={form.project_name} onChange={e => setForm({ ...form, project_name: e.target.value })} placeholder="e.g. JPMorgan India GCC" />
                   </div>
                   <div className="form-row">
                     <div className="form-group">
