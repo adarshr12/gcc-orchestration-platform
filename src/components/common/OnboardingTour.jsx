@@ -178,13 +178,17 @@ export default function OnboardingTour() {
   const { isPMO } = useAuth();
   const [run, setRun] = useState(false);
 
+  const tourKey = `embark_tour_done_${isPMO ? 'pmo' : 'client'}`;
+
   useEffect(() => {
+    if (localStorage.getItem(tourKey)) return;
     const timer = setTimeout(() => setRun(true), 900);
     return () => clearTimeout(timer);
-  }, []);
+  }, [tourKey]);
 
   const handleCallback = ({ status }) => {
     if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+      localStorage.setItem(tourKey, '1');
       setRun(false);
     }
   };
