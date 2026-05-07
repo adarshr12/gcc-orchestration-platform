@@ -42,6 +42,13 @@ class DataStore {
     this.listeners.forEach(fn => fn());
   }
 
+  // Force a fresh fetch regardless of current loading state (call after auth changes)
+  async reload() {
+    this.loading = false;
+    this.initialized = false;
+    return this.init();
+  }
+
   async init() {
     if (this.loading) return;
     this.loading = true;
