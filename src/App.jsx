@@ -6,6 +6,7 @@ import TopNavbar from './components/layout/TopNavbar';
 import Sidebar from './components/layout/Sidebar';
 import AppRoutes from './routes';
 import Login from './pages/Login';
+import OnboardingTour from './components/common/OnboardingTour';
 
 function AppContent() {
   const { session, isLoading } = useAuth();
@@ -32,6 +33,7 @@ function AppContent() {
 
   return (
     <div className="app-container">
+      <OnboardingTour />
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
       {/* Mobile Overlay */}

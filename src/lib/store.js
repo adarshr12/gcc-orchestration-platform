@@ -17,6 +17,7 @@ const TABLE_CONFIG = {
   safety_checklist_items: { pk: 'id' },
   audit_logs: { pk: 'id' },
   comments: { pk: 'id' },
+  attendance: { pk: 'id' },
 };
 
 const INITIAL_DATA = Object.keys(TABLE_CONFIG).reduce((acc, table) => {

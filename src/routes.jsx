@@ -15,6 +15,7 @@ import CreatePO from './pages/pmo/CreatePO';
 import EscalationList from './pages/pmo/EscalationList';
 import EscalationDetail from './pages/pmo/EscalationDetail';
 import SafetyChecklists from './pages/pmo/SafetyChecklists';
+import Attendance from './pages/pmo/Attendance';
 import Reports from './pages/pmo/Reports';
 import AuditLogs from './pages/pmo/AuditLogs';
 
@@ -47,6 +48,7 @@ export default function AppRoutes() {
         <Route path="/escalations" element={<EscalationList />} />
         <Route path="/escalations/:id" element={<EscalationDetail />} />
         <Route path="/safety" element={<SafetyChecklists />} />
+        <Route path="/attendance" element={<Attendance />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/audit" element={<AuditLogs />} />
       </Routes>
