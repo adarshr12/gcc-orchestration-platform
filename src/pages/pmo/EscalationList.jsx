@@ -12,7 +12,7 @@ export default function EscalationList() {
   return (
     <div className="fade-in">
       <div className="page-header">
-        <div><h1 className="page-title">Escalations</h1><p className="page-subtitle">{escalations.length} total escalations</p></div>
+        <div><h1 className="page-title">Escalation Tracker</h1><p className="page-subtitle">{escalations.length} escalation{escalations.length !== 1 ? 's' : ''} raised across portfolio · SLA monitored in real time</p></div>
       </div>
       <div className="table-container">
         <table className="data-table">

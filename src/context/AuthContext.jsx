@@ -4,22 +4,13 @@ import { store } from '../lib/store';
 
 const AuthContext = createContext({});
 
-// 🚀 LOCAL DEMO CREDENTIALS
+// Demo credentials — IDs match seed.mjs user UUIDs
 const DEMO_USERS = {
-  'pmo@demo.com': { 
-    id: 'ad68f966-c6cf-46fc-96d1-1c4e7b0dae48', // Matches Sarah Jenkins in DB
-    email: 'pmo@demo.com', 
-    name: 'Sarah Jenkins (Demo)', 
-    role: 'PMO',
-    password: 'pmo' 
-  },
-  'client@demo.com': { 
-    id: 'bd68f966-c6cf-46fc-96d1-1c4e7b0dae49', // Matches Michael Brown in DB
-    email: 'client@demo.com', 
-    name: 'Michael Brown (Demo)', 
-    role: 'Client',
-    password: 'client' 
-  }
+  'pmo@demo.com':     { id: 'ad68f966-c6cf-46fc-96d1-1c4e7b0dae48', email: 'pmo@demo.com',     name: 'Sarah Jenkins', role: 'PMO',    password: 'pmo'     },
+  'pmo2@demo.com':    { id: 'cd68f966-c6cf-46fc-96d1-1c4e7b0dae50', email: 'pmo2@demo.com',    name: 'Rahul Sharma',  role: 'PMO',    password: 'pmo2'    },
+  'client@demo.com':  { id: 'bd68f966-c6cf-46fc-96d1-1c4e7b0dae49', email: 'client@demo.com',  name: 'Michael Brown', role: 'Client', password: 'client'  },
+  'client2@demo.com': { id: 'dd68f966-c6cf-46fc-96d1-1c4e7b0dae51', email: 'client2@demo.com', name: 'David Kim',     role: 'Client', password: 'client2' },
+  'client3@demo.com': { id: 'ed68f966-c6cf-46fc-96d1-1c4e7b0dae52', email: 'client3@demo.com', name: 'Priya Mehta',   role: 'Client', password: 'client3' },
 };
 
 export const AuthProvider = ({ children }) => {
@@ -85,13 +76,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signIn = async (email, password) => {
-    // 🛡️ CHECK FOR LOCAL DEMO BYPASS
     if (DEMO_USERS[email] && DEMO_USERS[email].password === password) {
-      const demoUser = DEMO_USERS[email];
-      localStorage.setItem('gcc_demo_user', JSON.stringify(demoUser));
-      setUser(demoUser);
+      const base = DEMO_USERS[email];
+      // Fetch DB profile to get assigned_project_id and any other persisted fields
+      const { data: profile } = await supabase.from('users').select('*').eq('id', base.id).single();
+      const fullUser = { ...base, ...(profile || {}) };
+      localStorage.setItem('gcc_demo_user', JSON.stringify(fullUser));
+      setUser(fullUser);
       store.init();
-      return { data: demoUser, error: null };
+      return { data: fullUser, error: null };
     }
 
     // Fallback to real Supabase Auth

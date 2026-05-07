@@ -5,142 +5,72 @@ import { useAuth } from '../../context/AuthContext';
 const PMO_STEPS = [
   {
     target: 'body',
-    content: (
-      <div>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', color: '#1e3a5f' }}>
-          Welcome to Embark GCC Platform
-        </h2>
-        <p style={{ color: '#475569', lineHeight: 1.6 }}>
-          Your single source of truth for managing the end-to-end GCC lifecycle — replacing Excel, WhatsApp, and email with one unified workflow platform.
-        </p>
-        <p style={{ color: '#6366f1', fontWeight: 600, marginTop: '0.75rem', fontSize: '0.9rem' }}>
-          Let's take a quick tour of everything at your disposal.
-        </p>
-      </div>
-    ),
+    title: 'Welcome to Embark',
+    content: 'You are the PMO managing this GCC setup. This platform replaces the spreadsheets, WhatsApp threads, and email chains — everything your team needs to track, approve, and govern is here.',
     placement: 'center',
     disableBeacon: true,
   },
   {
     target: 'a[href="/"]',
-    content: (
-      <div>
-        <h3 style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#1e3a5f' }}>Portfolio Dashboard</h3>
-        <p style={{ color: '#475569', lineHeight: 1.6 }}>
-          Monitor all your GCC projects at a glance — health indicators, budget variance, open escalations, SLA breaches, and compliance expiry alerts all in one view.
-        </p>
-      </div>
-    ),
+    title: 'Dashboard — Your Daily Briefing',
+    content: 'Start every day here. The moment an SLA is breached, a compliance document expires, or a project goes off-track, it surfaces in this view. CPI and Schedule Adherence tell you portfolio health in two numbers.',
     placement: 'right',
     disableBeacon: true,
   },
   {
     target: 'a[href="/projects"]',
-    content: (
-      <div>
-        <h3 style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#1e3a5f' }}>Project Lifecycle</h3>
-        <p style={{ color: '#475569', lineHeight: 1.6 }}>
-          Manage GCC projects through 6 structured stages: Discovery → Evaluation → Model Selection → Design & Planning → Construction → Handover. Each stage has mandatory gate checklists before progression.
-        </p>
-      </div>
-    ),
+    title: 'GCC Mandates — The Lifecycle Engine',
+    content: 'Every GCC you are setting up lives here. Click into any project to see its 6-stage journey: Discovery → Evaluation → Model Selection → Design → Construction → Handover. Each stage has mandatory gate checklists — a stage cannot advance until every gate is checked off. This is your governance layer.',
     placement: 'right',
     disableBeacon: true,
   },
   {
     target: 'a[href="/vendors"]',
-    content: (
-      <div>
-        <h3 style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#1e3a5f' }}>Vendor Management</h3>
-        <p style={{ color: '#475569', lineHeight: 1.6 }}>
-          Onboard vendors with document-based compliance tracking. Get automatic alerts when certificates (GST, Insurance, ISO) are expiring. Approve or reject vendors with a full audit trail.
-        </p>
-      </div>
-    ),
+    title: 'Vendors — Your GCC Supply Chain',
+    content: 'Every partner you engage — legal firms, real estate brokers, IT vendors, facility managers — is tracked here. Compliance documents (GST, PF, ISO, Insurance) show expiry status. When a doc is about to lapse, a compliance alert appears on your dashboard before it becomes a risk.',
     placement: 'right',
     disableBeacon: true,
   },
   {
     target: 'a[href="/purchase-orders"]',
-    content: (
-      <div>
-        <h3 style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#1e3a5f' }}>Purchase Orders & Maker-Checker</h3>
-        <p style={{ color: '#475569', lineHeight: 1.6 }}>
-          Create POs with built-in maker-checker approval workflow. Threshold-based rules: under ₹50K auto-approves, ₹50K–₹5L needs PMO approval, above ₹5L requires Director sign-off. Budget actuals update automatically on approval.
-        </p>
-      </div>
-    ),
+    title: 'Purchase Orders — Maker-Checker Workflow',
+    content: 'Every vendor payment flows through a tiered approval chain: under ₹50K auto-approves, ₹50K–₹5L needs your sign-off, above ₹5L requires Director approval. Every approval or rejection is timestamped and linked to a budget phase. No payment leaves without a trail.',
     placement: 'right',
     disableBeacon: true,
   },
   {
     target: 'a[href="/escalations"]',
-    content: (
-      <div>
-        <h3 style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#1e3a5f' }}>Escalation Management & SLA</h3>
-        <p style={{ color: '#475569', lineHeight: 1.6 }}>
-          All client-raised issues flow here with SLA countdowns. Critical escalations must resolve in 4 hours, High in 24 hours, Medium in 3 days, Low in 5 days. Breached SLAs show red alerts on your dashboard.
-        </p>
-      </div>
-    ),
+    title: 'Escalation Tracker — SLA on the Clock',
+    content: 'When a client raises an issue, an SLA countdown starts immediately. Critical issues get 4 hours, High 24 hours, Medium 72 hours. You assign it, add comments, upload resolution notes. Breached SLAs show as red alerts on your dashboard — you cannot miss them.',
     placement: 'right',
     disableBeacon: true,
   },
   {
     target: 'a[href="/safety"]',
-    content: (
-      <div>
-        <h3 style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#1e3a5f' }}>Safety Inspections</h3>
-        <p style={{ color: '#475569', lineHeight: 1.6 }}>
-          Log site safety inspections with structured checklists — fire exits, PPE, emergency contacts, electrical, first aid, and more. Non-compliant inspections trigger alerts on the dashboard.
-        </p>
-      </div>
-    ),
+    title: 'Safety Checklists — Audit-Ready Records',
+    content: 'For active construction sites, log daily safety inspections here: fire exits, PPE, electrical, first aid, emergency contacts. Every checklist is timestamped. If an inspection is non-compliant, it flags on your dashboard. This keeps you audit-ready for site visits.',
     placement: 'right',
     disableBeacon: true,
   },
   {
     target: 'a[href="/attendance"]',
-    content: (
-      <div>
-        <h3 style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#1e3a5f' }}>Attendance Tracking</h3>
-        <p style={{ color: '#475569', lineHeight: 1.6 }}>
-          Log daily attendance for your project workforce. Track present/absent status per worker, per project, per date — replacing manual registers and WhatsApp updates.
-        </p>
-      </div>
-    ),
+    title: 'Attendance — Daily Workforce Log',
+    content: 'Log which workers were on-site each day by project and role. The attendance rate auto-calculates — useful for contractor SLA compliance and payroll reconciliation. View history by date to pull any past record instantly.',
     placement: 'right',
     disableBeacon: true,
   },
   {
     target: 'a[href="/reports"]',
-    content: (
-      <div>
-        <h3 style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#1e3a5f' }}>Reports & Analytics</h3>
-        <p style={{ color: '#475569', lineHeight: 1.6 }}>
-          View portfolio-level KPIs: Cost Performance Index, Schedule Adherence, SLA Compliance rate, and Vendor Compliance rate. Export reports for client communication.
-        </p>
-      </div>
-    ),
+    title: 'Reports — Steering Committee Ready',
+    content: 'CPI, Schedule Adherence, SLA Compliance %, Vendor Health — all calculated live from your actual data. This is the one page you screenshot for your weekly client steering committee. No manual PowerPoint needed.',
     placement: 'right',
     disableBeacon: true,
   },
   {
-    target: 'body',
-    content: (
-      <div>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', color: '#1e3a5f' }}>
-          You're all set!
-        </h2>
-        <p style={{ color: '#475569', lineHeight: 1.6 }}>
-          Start by opening a project to see stage gates in action, or head to the Dashboard to review active escalations and budget health.
-        </p>
-        <p style={{ color: '#6366f1', fontWeight: 600, marginTop: '0.75rem', fontSize: '0.9rem' }}>
-          This tour runs every time you open the app so you always have a reference.
-        </p>
-      </div>
-    ),
-    placement: 'center',
+    target: 'a[href="/audit"]',
+    title: 'Audit History — Full Traceability',
+    content: 'Every action — stage changes, PO approvals, vendor updates, escalation resolutions — is logged here with the user and timestamp. Required for client governance reporting and internal audits. If anyone ever asks "who approved this?" — the answer is here.',
+    placement: 'right',
     disableBeacon: true,
   },
 ];
@@ -148,87 +78,37 @@ const PMO_STEPS = [
 const CLIENT_STEPS = [
   {
     target: 'body',
-    content: (
-      <div>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', color: '#1e3a5f' }}>
-          Welcome to Your GCC Portal
-        </h2>
-        <p style={{ color: '#475569', lineHeight: 1.6 }}>
-          Track your GCC setup in real time — no more waiting for weekly email updates. Everything you need is right here.
-        </p>
-        <p style={{ color: '#6366f1', fontWeight: 600, marginTop: '0.75rem', fontSize: '0.9rem' }}>
-          Let us show you around.
-        </p>
-      </div>
-    ),
+    title: 'Your GCC Setup Portal',
+    content: 'You are a client whose GCC is being set up by the Embark PMO team. This portal gives you real-time transparency into your project — no more waiting for weekly email updates or status calls.',
     placement: 'center',
     disableBeacon: true,
   },
   {
     target: 'a[href="/"]',
-    content: (
-      <div>
-        <h3 style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#1e3a5f' }}>Project Dashboard</h3>
-        <p style={{ color: '#475569', lineHeight: 1.6 }}>
-          See your GCC setup progress at a glance — current stage, milestone completion, budget burn, and workstream health indicators.
-        </p>
-      </div>
-    ),
+    title: 'Executive Dashboard — Your Cockpit',
+    content: 'At a glance: what stage your setup is in, how much budget has been utilized, and which of the five workstreams (Legal, Real Estate, Talent, IT, Compliance) needs attention. If anything requires your input, it surfaces here as an action card.',
     placement: 'right',
     disableBeacon: true,
   },
   {
     target: 'a[href="/my-project"]',
-    content: (
-      <div>
-        <h3 style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#1e3a5f' }}>My Project</h3>
-        <p style={{ color: '#475569', lineHeight: 1.6 }}>
-          View your project's 6-stage lifecycle, milestone status, and team communications — read-only so you always have the latest picture without needing to call your PMO.
-        </p>
-      </div>
-    ),
+    title: 'My Project — Full Transparency',
+    content: 'Your complete project breakdown: the 6-stage lifecycle with stage gate status, all milestones and their due dates, and a phase-by-phase budget breakdown. Your PMO updates this in real time — you always have the latest picture without needing to ask.',
     placement: 'right',
     disableBeacon: true,
   },
   {
     target: 'a[href="/escalations"]',
-    content: (
-      <div>
-        <h3 style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#1e3a5f' }}>Raise & Track Escalations</h3>
-        <p style={{ color: '#475569', lineHeight: 1.6 }}>
-          Flag issues directly in the platform. Choose severity (Low / Medium / High / Critical) and the system auto-assigns to the right person with an SLA timer. Track the resolution thread without sending a single email.
-        </p>
-      </div>
-    ),
+    title: 'Raise a Priority Issue — No More Email Chains',
+    content: 'If anything is blocked, delayed, or needs urgent attention, raise it here. Choose a severity level and the system routes it to the right person immediately with an SLA clock. You can track the resolution thread and get notified the moment it is resolved.',
     placement: 'right',
     disableBeacon: true,
   },
   {
     target: 'a[href="/notifications"]',
-    content: (
-      <div>
-        <h3 style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#1e3a5f' }}>Notifications</h3>
-        <p style={{ color: '#475569', lineHeight: 1.6 }}>
-          Get real-time updates — when your escalation is picked up, when a stage advances, when a PO is approved. No more chasing updates over WhatsApp.
-        </p>
-      </div>
-    ),
+    title: 'Notifications — Stay in the Loop',
+    content: 'Every update your PMO makes — stage progressions, PO approvals, escalation resolutions, milestone completions — lands here as a notification. This is your primary channel. No WhatsApp, no email, no chasing.',
     placement: 'right',
-    disableBeacon: true,
-  },
-  {
-    target: 'body',
-    content: (
-      <div>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', color: '#1e3a5f' }}>
-          You're ready!
-        </h2>
-        <p style={{ color: '#475569', lineHeight: 1.6 }}>
-          Head to your Dashboard to see the current status of your GCC setup, or raise an escalation if something needs attention.
-        </p>
-      </div>
-    ),
-    placement: 'center',
     disableBeacon: true,
   },
 ];
@@ -239,68 +119,58 @@ const tourStyles = {
     textColor: '#0f172a',
     backgroundColor: '#ffffff',
     arrowColor: '#ffffff',
+    overlayColor: 'rgba(15, 23, 42, 0.6)',
     zIndex: 10000,
-    width: 380,
+    width: 400,
   },
   tooltip: {
     borderRadius: 16,
-    boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-    padding: '1.5rem',
+    boxShadow: '0 25px 60px rgba(0,0,0,0.2)',
+    padding: '1.75rem',
   },
   tooltipContainer: {
     textAlign: 'left',
   },
   tooltipTitle: {
-    fontSize: '1.1rem',
-    fontWeight: 700,
-    color: '#1e3a5f',
+    fontSize: '1rem',
+    fontWeight: 800,
+    color: '#0f172a',
+    marginBottom: '0.625rem',
   },
   tooltipContent: {
-    padding: '0.5rem 0',
-    lineHeight: 1.6,
+    padding: '0',
+    lineHeight: 1.7,
     color: '#475569',
-  },
-  tooltipFooter: {
-    marginTop: '1rem',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    fontSize: '0.875rem',
   },
   buttonNext: {
     background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
     borderRadius: 10,
-    padding: '0.6rem 1.25rem',
+    padding: '0.625rem 1.25rem',
     fontSize: '0.875rem',
-    fontWeight: 600,
+    fontWeight: 700,
     color: '#fff',
     border: 'none',
-    cursor: 'pointer',
   },
   buttonBack: {
-    background: 'transparent',
     color: '#6366f1',
-    border: '1px solid #6366f1',
+    background: 'transparent',
+    border: '1.5px solid #e0e7ff',
     borderRadius: 10,
-    padding: '0.6rem 1.25rem',
+    padding: '0.625rem 1rem',
     fontSize: '0.875rem',
     fontWeight: 600,
-    cursor: 'pointer',
+    marginRight: '0.5rem',
   },
   buttonSkip: {
     color: '#94a3b8',
     background: 'transparent',
     border: 'none',
-    fontSize: '0.8rem',
-    cursor: 'pointer',
-  },
-  buttonClose: {
-    color: '#94a3b8',
+    fontSize: '0.8125rem',
+    fontWeight: 500,
   },
   spotlight: {
     borderRadius: 12,
-  },
-  beacon: {
-    display: 'none',
   },
 };
 
@@ -308,9 +178,8 @@ export default function OnboardingTour() {
   const { isPMO } = useAuth();
   const [run, setRun] = useState(false);
 
-  // Start tour every time the app opens
   useEffect(() => {
-    const timer = setTimeout(() => setRun(true), 800);
+    const timer = setTimeout(() => setRun(true), 900);
     return () => clearTimeout(timer);
   }, []);
 
@@ -331,7 +200,6 @@ export default function OnboardingTour() {
       showSkipButton
       scrollToFirstStep
       spotlightClicks={false}
-      disableScrolling={false}
       callback={handleCallback}
       styles={tourStyles}
       locale={{
@@ -339,7 +207,6 @@ export default function OnboardingTour() {
         close: 'Close',
         last: 'Done',
         next: 'Next →',
-        open: 'Open',
         skip: 'Skip Tour',
       }}
     />

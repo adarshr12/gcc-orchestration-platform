@@ -19,11 +19,11 @@ export default function ProjectList() {
     <div className="fade-in">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Projects</h1>
-          <p className="page-subtitle">{projects.length} GCC projects</p>
+          <h1 className="page-title">GCC Mandates</h1>
+          <p className="page-subtitle">{projects.length} mandate{projects.length !== 1 ? 's' : ''} under management</p>
         </div>
         <button className="btn btn-primary" onClick={() => navigate('/projects/new')}>
-          <Plus size={16} /> Create Project
+          <Plus size={16} /> Initiate New Mandate
         </button>
       </div>
 
