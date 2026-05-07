@@ -1,12 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 
-const PMO_USER_ID    = 'ad68f966-c6cf-46fc-96d1-1c4e7b0dae48';
-const PMO_USER_2_ID  = 'cd68f966-c6cf-46fc-96d1-1c4e7b0dae50';
-const JPMORGAN_CLIENT_ID  = 'bd68f966-c6cf-46fc-96d1-1c4e7b0dae49';
-const GOLDMAN_CLIENT_ID   = 'dd68f966-c6cf-46fc-96d1-1c4e7b0dae51';
-const MICROSOFT_CLIENT_ID = 'ed68f966-c6cf-46fc-96d1-1c4e7b0dae52';
-
 const daysAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString(); };
 const daysFromNow = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString(); };
 const dateOnly = iso => iso.split('T')[0];
@@ -22,7 +16,39 @@ const STAGE_GATES = {
   6: ['Final Site Walkthrough & Snagging List Closed', 'GCC Operations SOP Handover Package Signed', 'Post-Handover Review Meeting Completed with Client'],
 };
 
+// Creates or retrieves the Supabase Auth record for a demo user.
+// Returns the auth user's UUID which satisfies the users.id FK constraint.
+async function getOrCreateAuthUserId(email) {
+  // Use a deterministic long password for the auth record (demo login bypasses this anyway)
+  const pw = email.replace('@demo.com', '').replace(/[^a-zA-Z0-9]/g, '') + '_EmbarkGCC2025!';
+
+  const { data: signUpData } = await supabase.auth.signUp({ email, password: pw });
+  if (signUpData?.user?.id) {
+    return signUpData.user.id;
+  }
+
+  // User already exists in auth — sign in to retrieve their ID
+  const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({ email, password: pw });
+  if (signInData?.user?.id) {
+    return signInData.user.id;
+  }
+
+  throw new Error(
+    `Auth setup failed for ${email}: ${signInErr?.message}. ` +
+    `If re-seeding with email confirmation enabled, delete these 5 users in the Supabase Auth dashboard first, then re-run.`
+  );
+}
+
 async function runSeed(log) {
+  // ── AUTH USERS ─────────────────────────────────────────────────────────────
+  log('Setting up Supabase Auth users (needed for FK constraint)...');
+  const PMO_USER_ID         = await getOrCreateAuthUserId('pmo@demo.com');
+  const PMO_USER_2_ID       = await getOrCreateAuthUserId('pmo2@demo.com');
+  const JPMORGAN_CLIENT_ID  = await getOrCreateAuthUserId('client@demo.com');
+  const GOLDMAN_CLIENT_ID   = await getOrCreateAuthUserId('client2@demo.com');
+  const MICROSOFT_CLIENT_ID = await getOrCreateAuthUserId('client3@demo.com');
+  log(`✅ Auth user IDs obtained`);
+
   // ── CLEAR ──────────────────────────────────────────────────────────────────
   log('Clearing existing data...');
   const clearOrder = ['audit_logs','notifications','attendance','safety_checklist_items','safety_checklists','escalation_comments','escalations','purchase_orders','vendor_compliance','vendors','budget','stage_gates','stages','milestones','projects','users'];
@@ -46,9 +72,9 @@ async function runSeed(log) {
   // ── PROJECTS ───────────────────────────────────────────────────────────────
   log('Inserting projects...');
   const { data: projects, error: pErr } = await supabase.from('projects').insert([
-    { project_name: 'JPMorgan India GCC',       location: 'Bangalore', client_name: 'JPMorgan Chase',      current_stage: 3, stage_status: 'In Progress', total_budget: 80000000, actual_spent: 14500000, start_date: '2024-11-01', target_end_date: '2025-12-31', created_by: PMO_USER_ID   },
-    { project_name: 'Goldman Sachs Tech Hub',   location: 'Hyderabad', client_name: 'Goldman Sachs',       current_stage: 5, stage_status: 'Blocked',     total_budget: 55000000, actual_spent: 48000000, start_date: '2024-06-01', target_end_date: '2025-07-31', created_by: PMO_USER_ID   },
-    { project_name: 'Microsoft Innovation Centre', location: 'Pune',   client_name: 'Microsoft Corporation', current_stage: 1, stage_status: 'In Progress', total_budget: 45000000, actual_spent:   800000, start_date: '2025-03-01', target_end_date: '2026-06-30', created_by: PMO_USER_2_ID },
+    { project_name: 'JPMorgan India GCC',          location: 'Bangalore', client_name: 'JPMorgan Chase',         current_stage: 3, stage_status: 'In Progress', total_budget: 80000000, actual_spent: 14500000, start_date: '2024-11-01', target_end_date: '2025-12-31', created_by: PMO_USER_ID   },
+    { project_name: 'Goldman Sachs Tech Hub',       location: 'Hyderabad', client_name: 'Goldman Sachs',          current_stage: 5, stage_status: 'Blocked',     total_budget: 55000000, actual_spent: 48000000, start_date: '2024-06-01', target_end_date: '2025-07-31', created_by: PMO_USER_ID   },
+    { project_name: 'Microsoft Innovation Centre',  location: 'Pune',      client_name: 'Microsoft Corporation',  current_stage: 1, stage_status: 'In Progress', total_budget: 45000000, actual_spent:   800000, start_date: '2025-03-01', target_end_date: '2026-06-30', created_by: PMO_USER_2_ID },
   ]).select();
   if (pErr) throw new Error('Projects: ' + pErr.message);
   const [jpmorgan, goldman, microsoft] = projects;
@@ -79,17 +105,17 @@ async function runSeed(log) {
   // ── MILESTONES ─────────────────────────────────────────────────────────────
   log('Inserting milestones...');
   const { error: mErr } = await supabase.from('milestones').insert([
-    { project_id: jpmorgan.id,  milestone_name: 'India Feasibility Report',             due_date: dateOnly(daysAgo(80)),     status: 'Completed', owner_id: PMO_USER_ID,    priority: 'High'   },
-    { project_id: jpmorgan.id,  milestone_name: 'Bangalore City Selection Approved',    due_date: dateOnly(daysAgo(50)),     status: 'Completed', owner_id: PMO_USER_ID,    priority: 'High'   },
-    { project_id: jpmorgan.id,  milestone_name: 'BOT Partner RFQ Responses Received',  due_date: dateOnly(daysAgo(5)),      status: 'Overdue',   owner_id: PMO_USER_ID,    priority: 'High'   },
-    { project_id: jpmorgan.id,  milestone_name: 'Legal Entity Incorporation Filing',    due_date: dateOnly(daysFromNow(20)), status: 'Upcoming',  owner_id: PMO_USER_2_ID,  priority: 'High'   },
-    { project_id: jpmorgan.id,  milestone_name: 'Office Location Shortlist (Top 3)',    due_date: dateOnly(daysFromNow(35)), status: 'Upcoming',  owner_id: PMO_USER_2_ID,  priority: 'Medium' },
-    { project_id: goldman.id,   milestone_name: 'Office Fit-Out Structural Work Complete', due_date: dateOnly(daysAgo(30)), status: 'Completed', owner_id: PMO_USER_ID,    priority: 'High'   },
-    { project_id: goldman.id,   milestone_name: 'IT Network Cabling & Rack Installation',  due_date: dateOnly(daysAgo(10)), status: 'Overdue',   owner_id: PMO_USER_ID,    priority: 'High'   },
-    { project_id: goldman.id,   milestone_name: 'First 100 Employees Onboarded',           due_date: dateOnly(daysFromNow(15)), status: 'Upcoming', owner_id: PMO_USER_2_ID, priority: 'High'  },
-    { project_id: goldman.id,   milestone_name: 'GCC Go-Live & Handover',                  due_date: dateOnly(daysFromNow(45)), status: 'Upcoming', owner_id: PMO_USER_ID,   priority: 'High'  },
-    { project_id: microsoft.id, milestone_name: 'India GCC Entry Strategy Workshop',        due_date: dateOnly(daysFromNow(10)), status: 'Upcoming', owner_id: PMO_USER_2_ID, priority: 'High' },
-    { project_id: microsoft.id, milestone_name: 'City Feasibility Report: Pune vs Hyderabad', due_date: dateOnly(daysFromNow(25)), status: 'Upcoming', owner_id: PMO_USER_2_ID, priority: 'High' },
+    { project_id: jpmorgan.id,  milestone_name: 'India Feasibility Report',               due_date: dateOnly(daysAgo(80)),      status: 'Completed', owner_id: PMO_USER_ID,    priority: 'High'   },
+    { project_id: jpmorgan.id,  milestone_name: 'Bangalore City Selection Approved',       due_date: dateOnly(daysAgo(50)),      status: 'Completed', owner_id: PMO_USER_ID,    priority: 'High'   },
+    { project_id: jpmorgan.id,  milestone_name: 'BOT Partner RFQ Responses Received',     due_date: dateOnly(daysAgo(5)),       status: 'Overdue',   owner_id: PMO_USER_ID,    priority: 'High'   },
+    { project_id: jpmorgan.id,  milestone_name: 'Legal Entity Incorporation Filing',       due_date: dateOnly(daysFromNow(20)),  status: 'Upcoming',  owner_id: PMO_USER_2_ID,  priority: 'High'   },
+    { project_id: jpmorgan.id,  milestone_name: 'Office Location Shortlist (Top 3)',       due_date: dateOnly(daysFromNow(35)),  status: 'Upcoming',  owner_id: PMO_USER_2_ID,  priority: 'Medium' },
+    { project_id: goldman.id,   milestone_name: 'Office Fit-Out Structural Work Complete', due_date: dateOnly(daysAgo(30)),      status: 'Completed', owner_id: PMO_USER_ID,    priority: 'High'   },
+    { project_id: goldman.id,   milestone_name: 'IT Network Cabling & Rack Installation',  due_date: dateOnly(daysAgo(10)),      status: 'Overdue',   owner_id: PMO_USER_ID,    priority: 'High'   },
+    { project_id: goldman.id,   milestone_name: 'First 100 Employees Onboarded',           due_date: dateOnly(daysFromNow(15)),  status: 'Upcoming',  owner_id: PMO_USER_2_ID,  priority: 'High'   },
+    { project_id: goldman.id,   milestone_name: 'GCC Go-Live & Handover',                  due_date: dateOnly(daysFromNow(45)),  status: 'Upcoming',  owner_id: PMO_USER_ID,    priority: 'High'   },
+    { project_id: microsoft.id, milestone_name: 'India GCC Entry Strategy Workshop',       due_date: dateOnly(daysFromNow(10)),  status: 'Upcoming',  owner_id: PMO_USER_2_ID,  priority: 'High'   },
+    { project_id: microsoft.id, milestone_name: 'City Feasibility Report: Pune vs Hyderabad', due_date: dateOnly(daysFromNow(25)), status: 'Upcoming', owner_id: PMO_USER_2_ID,  priority: 'High'  },
   ]);
   if (mErr) log('⚠️ Milestones warn: ' + mErr.message);
   else log('✅ 11 milestones created');
@@ -107,32 +133,32 @@ async function runSeed(log) {
   ]).select();
   if (vErr) throw new Error('Vendors: ' + vErr.message);
   const [prestige, khaitan, aon, lnt, cisco, cbre, jll] = vendors;
-  log(`✅ 7 vendors created`);
+  log('✅ 7 vendors created');
 
   // ── COMPLIANCE DOCS ────────────────────────────────────────────────────────
   log('Inserting vendor compliance documents...');
   const today = new Date();
-  const exp20  = new Date(today); exp20.setDate(today.getDate() + 20);
+  const exp20   = new Date(today); exp20.setDate(today.getDate() + 20);
   const expPast = new Date(today); expPast.setDate(today.getDate() - 15);
   const val1yr  = new Date(today); val1yr.setFullYear(today.getFullYear() + 1);
   const val2yr  = new Date(today); val2yr.setFullYear(today.getFullYear() + 2);
 
   const { error: cErr } = await supabase.from('vendor_compliance').insert([
-    { vendor_id: prestige.id, document_name: 'GST Registration Certificate',    document_type: 'GST Certificate', upload_date: dateOnly(daysAgo(90)),  expiry_date: ds(val2yr),  status: 'Valid',         file_name: 'Prestige_GST.pdf',         uploaded_by: PMO_USER_ID   },
-    { vendor_id: prestige.id, document_name: 'Contractor All-Risk Insurance',   document_type: 'Insurance',       upload_date: dateOnly(daysAgo(90)),  expiry_date: ds(val1yr),  status: 'Valid',         file_name: 'Prestige_Insurance.pdf',   uploaded_by: PMO_USER_ID   },
-    { vendor_id: prestige.id, document_name: 'ISO 9001:2015 Certification',     document_type: 'Quality Cert',    upload_date: dateOnly(daysAgo(90)),  expiry_date: ds(exp20),   status: 'Expiring Soon', file_name: 'Prestige_ISO9001.pdf',     uploaded_by: PMO_USER_ID   },
-    { vendor_id: khaitan.id,  document_name: 'GST Registration Certificate',    document_type: 'GST Certificate', upload_date: dateOnly(daysAgo(100)), expiry_date: ds(val2yr),  status: 'Valid',         file_name: 'Khaitan_GST.pdf',          uploaded_by: PMO_USER_ID   },
-    { vendor_id: khaitan.id,  document_name: 'Professional Indemnity Insurance',document_type: 'Insurance',       upload_date: dateOnly(daysAgo(100)), expiry_date: ds(val1yr),  status: 'Valid',         file_name: 'Khaitan_PI.pdf',           uploaded_by: PMO_USER_ID   },
-    { vendor_id: aon.id,      document_name: 'GST Registration Certificate',    document_type: 'GST Certificate', upload_date: dateOnly(daysAgo(400)), expiry_date: ds(expPast), status: 'Expired',       file_name: 'Aon_GST_EXPIRED.pdf',      uploaded_by: PMO_USER_ID   },
-    { vendor_id: lnt.id,      document_name: 'GST Registration Certificate',    document_type: 'GST Certificate', upload_date: dateOnly(daysAgo(150)), expiry_date: ds(val2yr),  status: 'Valid',         file_name: 'LnT_GST.pdf',              uploaded_by: PMO_USER_ID   },
-    { vendor_id: lnt.id,      document_name: 'Workmen Compensation Insurance',  document_type: 'Insurance',       upload_date: dateOnly(daysAgo(150)), expiry_date: ds(val1yr),  status: 'Valid',         file_name: 'LnT_WC_Insurance.pdf',     uploaded_by: PMO_USER_ID   },
-    { vendor_id: lnt.id,      document_name: 'ISO 14001 Environment Cert',      document_type: 'Quality Cert',    upload_date: dateOnly(daysAgo(150)), expiry_date: ds(val1yr),  status: 'Valid',         file_name: 'LnT_ISO14001.pdf',         uploaded_by: PMO_USER_ID   },
-    { vendor_id: cisco.id,    document_name: 'GST Registration Certificate',    document_type: 'GST Certificate', upload_date: dateOnly(daysAgo(120)), expiry_date: ds(val2yr),  status: 'Valid',         file_name: 'Cisco_GST.pdf',            uploaded_by: PMO_USER_ID   },
-    { vendor_id: cisco.id,    document_name: 'Cyber Liability Insurance',       document_type: 'Insurance',       upload_date: dateOnly(daysAgo(120)), expiry_date: ds(val1yr),  status: 'Valid',         file_name: 'Cisco_Cyber.pdf',          uploaded_by: PMO_USER_ID   },
-    { vendor_id: cbre.id,     document_name: 'GST Registration Certificate',    document_type: 'GST Certificate', upload_date: dateOnly(daysAgo(140)), expiry_date: ds(val2yr),  status: 'Valid',         file_name: 'CBRE_GST.pdf',             uploaded_by: PMO_USER_ID   },
-    { vendor_id: cbre.id,     document_name: 'Facility Management License',     document_type: 'Other',           upload_date: dateOnly(daysAgo(140)), expiry_date: ds(exp20),   status: 'Expiring Soon', file_name: 'CBRE_FM_License.pdf',      uploaded_by: PMO_USER_ID   },
-    { vendor_id: jll.id,      document_name: 'GST Registration Certificate',    document_type: 'GST Certificate', upload_date: dateOnly(daysAgo(20)),  expiry_date: ds(val2yr),  status: 'Valid',         file_name: 'JLL_GST.pdf',              uploaded_by: PMO_USER_2_ID },
-    { vendor_id: jll.id,      document_name: 'RERA Registration Certificate',   document_type: 'Other',           upload_date: dateOnly(daysAgo(20)),  expiry_date: ds(val1yr),  status: 'Valid',         file_name: 'JLL_RERA.pdf',             uploaded_by: PMO_USER_2_ID },
+    { vendor_id: prestige.id, document_name: 'GST Registration Certificate',     document_type: 'GST Certificate', upload_date: dateOnly(daysAgo(90)),  expiry_date: ds(val2yr),  status: 'Valid',         file_name: 'Prestige_GST.pdf',         uploaded_by: PMO_USER_ID   },
+    { vendor_id: prestige.id, document_name: 'Contractor All-Risk Insurance',    document_type: 'Insurance',       upload_date: dateOnly(daysAgo(90)),  expiry_date: ds(val1yr),  status: 'Valid',         file_name: 'Prestige_Insurance.pdf',   uploaded_by: PMO_USER_ID   },
+    { vendor_id: prestige.id, document_name: 'ISO 9001:2015 Certification',      document_type: 'Quality Cert',    upload_date: dateOnly(daysAgo(90)),  expiry_date: ds(exp20),   status: 'Expiring Soon', file_name: 'Prestige_ISO9001.pdf',     uploaded_by: PMO_USER_ID   },
+    { vendor_id: khaitan.id,  document_name: 'GST Registration Certificate',     document_type: 'GST Certificate', upload_date: dateOnly(daysAgo(100)), expiry_date: ds(val2yr),  status: 'Valid',         file_name: 'Khaitan_GST.pdf',          uploaded_by: PMO_USER_ID   },
+    { vendor_id: khaitan.id,  document_name: 'Professional Indemnity Insurance', document_type: 'Insurance',       upload_date: dateOnly(daysAgo(100)), expiry_date: ds(val1yr),  status: 'Valid',         file_name: 'Khaitan_PI.pdf',           uploaded_by: PMO_USER_ID   },
+    { vendor_id: aon.id,      document_name: 'GST Registration Certificate',     document_type: 'GST Certificate', upload_date: dateOnly(daysAgo(400)), expiry_date: ds(expPast), status: 'Expired',       file_name: 'Aon_GST_EXPIRED.pdf',      uploaded_by: PMO_USER_ID   },
+    { vendor_id: lnt.id,      document_name: 'GST Registration Certificate',     document_type: 'GST Certificate', upload_date: dateOnly(daysAgo(150)), expiry_date: ds(val2yr),  status: 'Valid',         file_name: 'LnT_GST.pdf',              uploaded_by: PMO_USER_ID   },
+    { vendor_id: lnt.id,      document_name: 'Workmen Compensation Insurance',   document_type: 'Insurance',       upload_date: dateOnly(daysAgo(150)), expiry_date: ds(val1yr),  status: 'Valid',         file_name: 'LnT_WC_Insurance.pdf',     uploaded_by: PMO_USER_ID   },
+    { vendor_id: lnt.id,      document_name: 'ISO 14001 Environment Cert',       document_type: 'Quality Cert',    upload_date: dateOnly(daysAgo(150)), expiry_date: ds(val1yr),  status: 'Valid',         file_name: 'LnT_ISO14001.pdf',         uploaded_by: PMO_USER_ID   },
+    { vendor_id: cisco.id,    document_name: 'GST Registration Certificate',     document_type: 'GST Certificate', upload_date: dateOnly(daysAgo(120)), expiry_date: ds(val2yr),  status: 'Valid',         file_name: 'Cisco_GST.pdf',            uploaded_by: PMO_USER_ID   },
+    { vendor_id: cisco.id,    document_name: 'Cyber Liability Insurance',        document_type: 'Insurance',       upload_date: dateOnly(daysAgo(120)), expiry_date: ds(val1yr),  status: 'Valid',         file_name: 'Cisco_Cyber.pdf',          uploaded_by: PMO_USER_ID   },
+    { vendor_id: cbre.id,     document_name: 'GST Registration Certificate',     document_type: 'GST Certificate', upload_date: dateOnly(daysAgo(140)), expiry_date: ds(val2yr),  status: 'Valid',         file_name: 'CBRE_GST.pdf',             uploaded_by: PMO_USER_ID   },
+    { vendor_id: cbre.id,     document_name: 'Facility Management License',      document_type: 'Other',           upload_date: dateOnly(daysAgo(140)), expiry_date: ds(exp20),   status: 'Expiring Soon', file_name: 'CBRE_FM_License.pdf',      uploaded_by: PMO_USER_ID   },
+    { vendor_id: jll.id,      document_name: 'GST Registration Certificate',     document_type: 'GST Certificate', upload_date: dateOnly(daysAgo(20)),  expiry_date: ds(val2yr),  status: 'Valid',         file_name: 'JLL_GST.pdf',              uploaded_by: PMO_USER_2_ID },
+    { vendor_id: jll.id,      document_name: 'RERA Registration Certificate',    document_type: 'Other',           upload_date: dateOnly(daysAgo(20)),  expiry_date: ds(val1yr),  status: 'Valid',         file_name: 'JLL_RERA.pdf',             uploaded_by: PMO_USER_2_ID },
   ]);
   if (cErr) log('⚠️ Compliance docs warn: ' + cErr.message);
   else log('✅ 15 compliance documents created');
@@ -176,10 +202,10 @@ async function runSeed(log) {
 
   // ── ESCALATIONS ────────────────────────────────────────────────────────────
   log('Inserting escalations...');
-  const critSLA = new Date(); critSLA.setHours(critSLA.getHours() - 2);
+  const critSLA    = new Date(); critSLA.setHours(critSLA.getHours() - 2);
   const highBreach = new Date(); highBreach.setHours(highBreach.getHours() - 30);
-  const medSLA = new Date(); medSLA.setDate(medSLA.getDate() + 2);
-  const lowSLA = new Date(); lowSLA.setDate(lowSLA.getDate() + 4);
+  const medSLA     = new Date(); medSLA.setDate(medSLA.getDate() + 2);
+  const lowSLA     = new Date(); lowSLA.setDate(lowSLA.getDate() + 4);
 
   const { data: escs, error: eErr } = await supabase.from('escalations').insert([
     { project_id: jpmorgan.id,  raised_by: JPMORGAN_CLIENT_ID,  title: 'Civil Fit-Out Behind Schedule — Risking Go-Live Date',      description: 'The office civil work is running 3 weeks behind the agreed Gantt plan. False ceiling and flooring on floors 2 and 3 are incomplete. At current pace we risk missing the December go-live date.',                                                                        severity: 'High',     status: 'In Progress', assigned_to: PMO_USER_ID,   sla_due_date: highBreach.toISOString(), created_at: daysAgo(2)  },
@@ -212,11 +238,11 @@ async function runSeed(log) {
 
   // ── SAFETY CHECKLISTS ──────────────────────────────────────────────────────
   log('Inserting safety checklists...');
-  const { data: cls, error: sErr } = await supabase.from('safety_checklists').insert([
+  const { data: cls, error: sclErr } = await supabase.from('safety_checklists').insert([
     { project_id: goldman.id, inspection_date: dateOnly(daysAgo(10)), inspector_name: 'Rajesh Kumar (L&T Safety Officer)', overall_status: 'Non-Compliant', created_by: PMO_USER_ID },
-    { project_id: goldman.id, inspection_date: dateOnly(daysAgo(3)),  inspector_name: 'Sarah Jenkins (Embark PMO)',          overall_status: 'Completed',     created_by: PMO_USER_ID },
+    { project_id: goldman.id, inspection_date: dateOnly(daysAgo(3)),  inspector_name: 'Sarah Jenkins (Embark PMO)',         overall_status: 'Completed',     created_by: PMO_USER_ID },
   ]).select();
-  if (!sErr && cls) {
+  if (!sclErr && cls) {
     const [cl1, cl2] = cls;
     await supabase.from('safety_checklist_items').insert([
       { checklist_id: cl1.id, item_name: 'Fire exits clearly marked and unobstructed',   is_compliant: true,  notes: null,                                                                              checked_by: PMO_USER_ID },
@@ -226,7 +252,7 @@ async function runSeed(log) {
       { checklist_id: cl1.id, item_name: 'First aid kit stocked and accessible',          is_compliant: true,  notes: null,                                                                              checked_by: PMO_USER_ID },
       { checklist_id: cl1.id, item_name: 'Hazardous material areas marked',               is_compliant: true,  notes: null,                                                                              checked_by: PMO_USER_ID },
       { checklist_id: cl1.id, item_name: 'Contractor site induction records up to date',  is_compliant: true,  notes: null,                                                                              checked_by: PMO_USER_ID },
-      { checklist_id: cl2.id, item_name: 'Fire exits clearly marked and unobstructed',   is_compliant: true,  notes: null,                                                                              checked_by: PMO_USER_ID },
+      { checklist_id: cl2.id, item_name: 'Fire exits clearly marked and unobstructed',    is_compliant: true,  notes: null,                                                                              checked_by: PMO_USER_ID },
       { checklist_id: cl2.id, item_name: 'PPE available and in use on site',              is_compliant: true,  notes: null,                                                                              checked_by: PMO_USER_ID },
       { checklist_id: cl2.id, item_name: 'Emergency contact numbers posted',              is_compliant: true,  notes: null,                                                                              checked_by: PMO_USER_ID },
       { checklist_id: cl2.id, item_name: 'Electrical panel and conduits safely enclosed', is_compliant: true,  notes: 'Remediation complete. All conduits enclosed. Verified with L&T site engineer.',  checked_by: PMO_USER_ID },
@@ -235,30 +261,30 @@ async function runSeed(log) {
       { checklist_id: cl2.id, item_name: 'Contractor site induction records up to date',  is_compliant: true,  notes: null,                                                                              checked_by: PMO_USER_ID },
     ]);
     log('✅ 2 safety checklists + 14 items created');
-  } else if (sErr) log('⚠️ Safety warn: ' + sErr.message);
+  } else if (sclErr) log('⚠️ Safety warn: ' + sclErr.message);
 
   // ── NOTIFICATIONS ──────────────────────────────────────────────────────────
   log('Inserting notifications...');
   const { error: nErr } = await supabase.from('notifications').insert([
-    { user_id: JPMORGAN_CLIENT_ID,  notification_type: 'Escalation Update', message: 'Sarah Jenkins replied on: "Civil Fit-Out Behind Schedule" — recovery plan attached',               related_entity_type: 'Escalation', related_entity_id: esc1.id,    is_read: false, created_at: daysAgo(1) },
-    { user_id: JPMORGAN_CLIENT_ID,  notification_type: 'SLA Alert',         message: 'SLA BREACHED: "Civil Fit-Out Behind Schedule" — overdue by 6 hours',                               related_entity_type: 'Escalation', related_entity_id: esc1.id,    is_read: false, created_at: daysAgo(1) },
-    { user_id: JPMORGAN_CLIENT_ID,  notification_type: 'Stage Update',      message: 'JPMorgan India GCC has advanced to Stage 3: Model Selection',                                       related_entity_type: 'Project',    related_entity_id: jpmorgan.id, is_read: true,  created_at: daysAgo(30) },
-    { user_id: JPMORGAN_CLIENT_ID,  notification_type: 'PO Update',         message: 'PO-2025-001 (Khaitan & Co, Rs 42L) has been approved',                                             related_entity_type: 'Project',    related_entity_id: jpmorgan.id, is_read: true,  created_at: daysAgo(70) },
-    { user_id: GOLDMAN_CLIENT_ID,   notification_type: 'Escalation Update', message: 'Sarah Jenkins replied on: "IT Infrastructure Budget Overrun" — Cisco technical spec shared',       related_entity_type: 'Escalation', related_entity_id: esc3.id,    is_read: false, created_at: daysAgo(1) },
-    { user_id: GOLDMAN_CLIENT_ID,   notification_type: 'SLA Alert',         message: 'CRITICAL SLA: "IT Infrastructure Budget Overrun" — approaching breach, action needed',             related_entity_type: 'Escalation', related_entity_id: esc3.id,    is_read: false, created_at: daysAgo(1) },
-    { user_id: GOLDMAN_CLIENT_ID,   notification_type: 'Milestone Alert',   message: 'Milestone OVERDUE: "IT Network Cabling & Rack Installation" — blocking go-live',                   related_entity_type: 'Project',    related_entity_id: goldman.id,  is_read: false, created_at: daysAgo(2) },
-    { user_id: GOLDMAN_CLIENT_ID,   notification_type: 'Stage Update',      message: 'Goldman Sachs Tech Hub has advanced to Stage 5: Construction & Execution',                          related_entity_type: 'Project',    related_entity_id: goldman.id,  is_read: true,  created_at: daysAgo(30) },
-    { user_id: MICROSOFT_CLIENT_ID, notification_type: 'Escalation Update', message: 'Rahul Sharma replied on: "Strategy Workshop Date Confirmation" — calendar invite sent',             related_entity_type: 'Escalation', related_entity_id: esc5.id,    is_read: false, created_at: daysAgo(0) },
-    { user_id: MICROSOFT_CLIENT_ID, notification_type: 'Stage Update',      message: 'Microsoft Innovation Centre has entered Stage 1: Discovery — your GCC setup journey begins',        related_entity_type: 'Project',    related_entity_id: microsoft.id, is_read: true, created_at: daysAgo(10) },
-    { user_id: MICROSOFT_CLIENT_ID, notification_type: 'Vendor Update',     message: 'JLL India Pvt Ltd has been approved as your Real Estate partner',                                   related_entity_type: 'Project',    related_entity_id: microsoft.id, is_read: true, created_at: daysAgo(18) },
-    { user_id: PMO_USER_ID,         notification_type: 'Escalation',        message: 'David Kim raised a Critical escalation: "IT Infrastructure Budget Overrun" — Goldman Sachs',       related_entity_type: 'Escalation', related_entity_id: esc3.id,    is_read: false, created_at: daysAgo(1) },
-    { user_id: PMO_USER_ID,         notification_type: 'Escalation',        message: 'Michael Brown raised a High escalation: "Civil Fit-Out Behind Schedule" — JPMorgan India GCC',    related_entity_type: 'Escalation', related_entity_id: esc1.id,    is_read: false, created_at: daysAgo(2) },
-    { user_id: PMO_USER_ID,         notification_type: 'Compliance Alert',   message: 'Aon Hewitt India — GST Certificate EXPIRED. Vendor blocked from PO issuance.',                    related_entity_type: 'Vendor',     related_entity_id: aon.id,     is_read: false, created_at: daysAgo(1) },
-    { user_id: PMO_USER_ID,         notification_type: 'Compliance Alert',   message: 'Prestige Constructions — ISO 9001 Certificate expiring in 20 days. Renewal required.',            related_entity_type: 'Vendor',     related_entity_id: prestige.id, is_read: false, created_at: daysAgo(1) },
-    { user_id: PMO_USER_ID,         notification_type: 'SLA Alert',          message: 'PO-2025-005 (Cisco, Rs 1.44 crore) approval SLA BREACHED — pending for 72 hours',                 related_entity_type: 'Project',    related_entity_id: goldman.id,  is_read: false, created_at: daysAgo(1) },
-    { user_id: PMO_USER_2_ID,       notification_type: 'Escalation',         message: 'Assigned to you: "Aon Hewitt GST Certificate Expired" — JPMorgan India GCC',                      related_entity_type: 'Escalation', related_entity_id: esc2.id,    is_read: false, created_at: daysAgo(1) },
-    { user_id: PMO_USER_2_ID,       notification_type: 'Escalation',         message: 'Assigned to you: "Strategy Workshop Date Confirmation" — Microsoft Innovation Centre',             related_entity_type: 'Escalation', related_entity_id: esc5.id,    is_read: false, created_at: daysAgo(1) },
-    { user_id: PMO_USER_2_ID,       notification_type: 'Milestone',          message: 'Milestone due in 10 days: "India GCC Entry Strategy Workshop" — Microsoft Innovation Centre',     related_entity_type: 'Project',    related_entity_id: microsoft.id, is_read: false, created_at: daysAgo(0) },
+    { user_id: JPMORGAN_CLIENT_ID,  notification_type: 'Escalation Update', message: 'Sarah Jenkins replied on: "Civil Fit-Out Behind Schedule" — recovery plan attached',              related_entity_type: 'Escalation', related_entity_id: esc1.id,     is_read: false, created_at: daysAgo(1)  },
+    { user_id: JPMORGAN_CLIENT_ID,  notification_type: 'SLA Alert',         message: 'SLA BREACHED: "Civil Fit-Out Behind Schedule" — overdue by 6 hours',                              related_entity_type: 'Escalation', related_entity_id: esc1.id,     is_read: false, created_at: daysAgo(1)  },
+    { user_id: JPMORGAN_CLIENT_ID,  notification_type: 'Stage Update',      message: 'JPMorgan India GCC has advanced to Stage 3: Model Selection',                                      related_entity_type: 'Project',    related_entity_id: jpmorgan.id,  is_read: true,  created_at: daysAgo(30) },
+    { user_id: JPMORGAN_CLIENT_ID,  notification_type: 'PO Update',         message: 'PO-2025-001 (Khaitan & Co, Rs 42L) has been approved',                                            related_entity_type: 'Project',    related_entity_id: jpmorgan.id,  is_read: true,  created_at: daysAgo(70) },
+    { user_id: GOLDMAN_CLIENT_ID,   notification_type: 'Escalation Update', message: 'Sarah Jenkins replied on: "IT Infrastructure Budget Overrun" — Cisco technical spec shared',      related_entity_type: 'Escalation', related_entity_id: esc3.id,     is_read: false, created_at: daysAgo(1)  },
+    { user_id: GOLDMAN_CLIENT_ID,   notification_type: 'SLA Alert',         message: 'CRITICAL SLA: "IT Infrastructure Budget Overrun" — approaching breach, action needed',            related_entity_type: 'Escalation', related_entity_id: esc3.id,     is_read: false, created_at: daysAgo(1)  },
+    { user_id: GOLDMAN_CLIENT_ID,   notification_type: 'Milestone Alert',   message: 'Milestone OVERDUE: "IT Network Cabling & Rack Installation" — blocking go-live',                  related_entity_type: 'Project',    related_entity_id: goldman.id,   is_read: false, created_at: daysAgo(2)  },
+    { user_id: GOLDMAN_CLIENT_ID,   notification_type: 'Stage Update',      message: 'Goldman Sachs Tech Hub has advanced to Stage 5: Construction & Execution',                         related_entity_type: 'Project',    related_entity_id: goldman.id,   is_read: true,  created_at: daysAgo(30) },
+    { user_id: MICROSOFT_CLIENT_ID, notification_type: 'Escalation Update', message: 'Rahul Sharma replied on: "Strategy Workshop Date Confirmation" — calendar invite sent',            related_entity_type: 'Escalation', related_entity_id: esc5.id,     is_read: false, created_at: daysAgo(0)  },
+    { user_id: MICROSOFT_CLIENT_ID, notification_type: 'Stage Update',      message: 'Microsoft Innovation Centre has entered Stage 1: Discovery — your GCC setup journey begins',       related_entity_type: 'Project',    related_entity_id: microsoft.id, is_read: true,  created_at: daysAgo(10) },
+    { user_id: MICROSOFT_CLIENT_ID, notification_type: 'Vendor Update',     message: 'JLL India Pvt Ltd has been approved as your Real Estate partner',                                  related_entity_type: 'Project',    related_entity_id: microsoft.id, is_read: true,  created_at: daysAgo(18) },
+    { user_id: PMO_USER_ID,         notification_type: 'Escalation',        message: 'David Kim raised a Critical escalation: "IT Infrastructure Budget Overrun" — Goldman Sachs',      related_entity_type: 'Escalation', related_entity_id: esc3.id,     is_read: false, created_at: daysAgo(1)  },
+    { user_id: PMO_USER_ID,         notification_type: 'Escalation',        message: 'Michael Brown raised a High escalation: "Civil Fit-Out Behind Schedule" — JPMorgan India GCC',   related_entity_type: 'Escalation', related_entity_id: esc1.id,     is_read: false, created_at: daysAgo(2)  },
+    { user_id: PMO_USER_ID,         notification_type: 'Compliance Alert',  message: 'Aon Hewitt India — GST Certificate EXPIRED. Vendor blocked from PO issuance.',                   related_entity_type: 'Vendor',     related_entity_id: aon.id,      is_read: false, created_at: daysAgo(1)  },
+    { user_id: PMO_USER_ID,         notification_type: 'Compliance Alert',  message: 'Prestige Constructions — ISO 9001 Certificate expiring in 20 days. Renewal required.',           related_entity_type: 'Vendor',     related_entity_id: prestige.id,  is_read: false, created_at: daysAgo(1)  },
+    { user_id: PMO_USER_ID,         notification_type: 'SLA Alert',         message: 'PO-2025-005 (Cisco, Rs 1.44 crore) approval SLA BREACHED — pending for 72 hours',                related_entity_type: 'Project',    related_entity_id: goldman.id,   is_read: false, created_at: daysAgo(1)  },
+    { user_id: PMO_USER_2_ID,       notification_type: 'Escalation',        message: 'Assigned to you: "Aon Hewitt GST Certificate Expired" — JPMorgan India GCC',                     related_entity_type: 'Escalation', related_entity_id: esc2.id,     is_read: false, created_at: daysAgo(1)  },
+    { user_id: PMO_USER_2_ID,       notification_type: 'Escalation',        message: 'Assigned to you: "Strategy Workshop Date Confirmation" — Microsoft Innovation Centre',            related_entity_type: 'Escalation', related_entity_id: esc5.id,     is_read: false, created_at: daysAgo(1)  },
+    { user_id: PMO_USER_2_ID,       notification_type: 'Milestone',         message: 'Milestone due in 10 days: "India GCC Entry Strategy Workshop" — Microsoft Innovation Centre',    related_entity_type: 'Project',    related_entity_id: microsoft.id, is_read: false, created_at: daysAgo(0)  },
   ]);
   if (nErr) log('⚠️ Notifications warn: ' + nErr.message);
   else log('✅ 19 notifications created');
@@ -266,21 +292,24 @@ async function runSeed(log) {
   // ── AUDIT LOG ──────────────────────────────────────────────────────────────
   log('Inserting audit log...');
   const { error: aErr } = await supabase.from('audit_logs').insert([
-    { user_id: PMO_USER_ID,         action: 'Created Project',    entity_type: 'Project',    entity_id: String(jpmorgan.id),  old_value: null,       new_value: jv('JPMorgan India GCC — Bangalore'),             created_at: daysAgo(100) },
-    { user_id: PMO_USER_ID,         action: 'Advanced Stage',     entity_type: 'Stage',      entity_id: String(jpmorgan.id),  old_value: jv('Discovery'),    new_value: jv('Evaluation'),                           created_at: daysAgo(80)  },
-    { user_id: PMO_USER_ID,         action: 'Advanced Stage',     entity_type: 'Stage',      entity_id: String(jpmorgan.id),  old_value: jv('Evaluation'),   new_value: jv('Model Selection'),                      created_at: daysAgo(45)  },
-    { user_id: PMO_USER_ID,         action: 'Approved Vendor',    entity_type: 'Vendor',     entity_id: String(prestige.id), old_value: null,       new_value: jv('Prestige Constructions — Approved'),           created_at: daysAgo(90)  },
-    { user_id: PMO_USER_ID,         action: 'Approved PO',        entity_type: 'PO',         entity_id: String(pos[0].id),   old_value: null,       new_value: jv('PO-2025-001 Rs 42L — Approved'),              created_at: daysAgo(70)  },
-    { user_id: PMO_USER_ID,         action: 'Rejected PO',        entity_type: 'PO',         entity_id: String(pos[2].id),   old_value: null,       new_value: jv('PO-2025-003 — Rejected: vendor compliance expired'), created_at: daysAgo(20) },
-    { user_id: PMO_USER_ID,         action: 'Created Project',    entity_type: 'Project',    entity_id: String(goldman.id),  old_value: null,       new_value: jv('Goldman Sachs Tech Hub — Hyderabad'),          created_at: daysAgo(180) },
-    { user_id: PMO_USER_2_ID,       action: 'Created Project',    entity_type: 'Project',    entity_id: String(microsoft.id), old_value: null,      new_value: jv('Microsoft Innovation Centre — Pune'),          created_at: daysAgo(10)  },
-    { user_id: JPMORGAN_CLIENT_ID,  action: 'Raised Escalation',  entity_type: 'Escalation', entity_id: String(esc1.id),     old_value: null,       new_value: jv('High: Civil Fit-Out Behind Schedule'),         created_at: daysAgo(2)   },
-    { user_id: GOLDMAN_CLIENT_ID,   action: 'Raised Escalation',  entity_type: 'Escalation', entity_id: String(esc3.id),     old_value: null,       new_value: jv('Critical: IT Infrastructure Budget Overrun'),  created_at: daysAgo(1)   },
-    { user_id: PMO_USER_2_ID,       action: 'Resolved Escalation',entity_type: 'Escalation', entity_id: String(esc4.id),     old_value: jv('In Progress'), new_value: jv('Resolved: Safety Non-Compliance Floor 1'), created_at: daysAgo(6)   },
-    { user_id: PMO_USER_2_ID,       action: 'Approved Vendor',    entity_type: 'Vendor',     entity_id: String(jll.id),      old_value: null,       new_value: jv('JLL India Pvt Ltd — Approved'),                created_at: daysAgo(18)  },
+    { user_id: PMO_USER_ID,         action: 'Created Project',     entity_type: 'Project',    entity_id: String(jpmorgan.id),  old_value: null,              new_value: jv('JPMorgan India GCC — Bangalore'),              created_at: daysAgo(100) },
+    { user_id: PMO_USER_ID,         action: 'Advanced Stage',      entity_type: 'Stage',      entity_id: String(jpmorgan.id),  old_value: jv('Discovery'),   new_value: jv('Evaluation'),                                  created_at: daysAgo(80)  },
+    { user_id: PMO_USER_ID,         action: 'Advanced Stage',      entity_type: 'Stage',      entity_id: String(jpmorgan.id),  old_value: jv('Evaluation'),  new_value: jv('Model Selection'),                             created_at: daysAgo(45)  },
+    { user_id: PMO_USER_ID,         action: 'Approved Vendor',     entity_type: 'Vendor',     entity_id: String(prestige.id),  old_value: null,              new_value: jv('Prestige Constructions — Approved'),           created_at: daysAgo(90)  },
+    { user_id: PMO_USER_ID,         action: 'Approved PO',         entity_type: 'PO',         entity_id: String(pos[0].id),    old_value: null,              new_value: jv('PO-2025-001 Rs 42L — Approved'),               created_at: daysAgo(70)  },
+    { user_id: PMO_USER_ID,         action: 'Rejected PO',         entity_type: 'PO',         entity_id: String(pos[2].id),    old_value: null,              new_value: jv('PO-2025-003 — Rejected: vendor compliance expired'), created_at: daysAgo(20) },
+    { user_id: PMO_USER_ID,         action: 'Created Project',     entity_type: 'Project',    entity_id: String(goldman.id),   old_value: null,              new_value: jv('Goldman Sachs Tech Hub — Hyderabad'),          created_at: daysAgo(180) },
+    { user_id: PMO_USER_2_ID,       action: 'Created Project',     entity_type: 'Project',    entity_id: String(microsoft.id), old_value: null,              new_value: jv('Microsoft Innovation Centre — Pune'),          created_at: daysAgo(10)  },
+    { user_id: JPMORGAN_CLIENT_ID,  action: 'Raised Escalation',   entity_type: 'Escalation', entity_id: String(esc1.id),      old_value: null,              new_value: jv('High: Civil Fit-Out Behind Schedule'),         created_at: daysAgo(2)   },
+    { user_id: GOLDMAN_CLIENT_ID,   action: 'Raised Escalation',   entity_type: 'Escalation', entity_id: String(esc3.id),      old_value: null,              new_value: jv('Critical: IT Infrastructure Budget Overrun'),  created_at: daysAgo(1)   },
+    { user_id: PMO_USER_2_ID,       action: 'Resolved Escalation', entity_type: 'Escalation', entity_id: String(esc4.id),      old_value: jv('In Progress'), new_value: jv('Resolved: Safety Non-Compliance Floor 1'),     created_at: daysAgo(6)   },
+    { user_id: PMO_USER_2_ID,       action: 'Approved Vendor',     entity_type: 'Vendor',     entity_id: String(jll.id),       old_value: null,              new_value: jv('JLL India Pvt Ltd — Approved'),                created_at: daysAgo(18)  },
   ]);
   if (aErr) log('⚠️ Audit log warn: ' + aErr.message);
   else log('✅ 12 audit log entries created');
+
+  // Sign out to leave browser in a clean state
+  await supabase.auth.signOut();
 
   log('');
   log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -347,10 +376,10 @@ export default function SeedPage() {
               color: 'white', fontSize: '1rem', fontWeight: 700, cursor: status === 'running' ? 'not-allowed' : 'pointer',
             }}
           >
-            {status === 'idle' ? '▶ Run Seed — Clear & Re-populate All Tables' :
+            {status === 'idle'    ? '▶ Run Seed — Clear & Re-populate All Tables' :
              status === 'running' ? '⏳ Seeding in progress...' :
-             status === 'done' ? '✅ Seed Complete — Go to Login (/login or refresh)' :
-             '❌ Error — Check logs below and retry'}
+             status === 'done'    ? '✅ Seed Complete — Go to Login (/ or refresh)' :
+                                    '❌ Error — Check logs below and retry'}
           </button>
 
           {status === 'done' && (
@@ -363,10 +392,18 @@ export default function SeedPage() {
               ))}
             </div>
           )}
+
+          {status === 'error' && (
+            <div style={{ marginTop: '1rem', background: '#1a0a0a', border: '1px solid #7f1d1d', borderRadius: 8, padding: '0.75rem', fontSize: '0.8125rem', color: '#fca5a5' }}>
+              <strong>Re-seeding tip:</strong> If the error mentions auth users already exist, go to your{' '}
+              <strong>Supabase dashboard → Authentication → Users</strong> and delete the 5 demo users, then run again.
+              Or disable email confirmation in <strong>Auth → Email → Confirm email</strong>.
+            </div>
+          )}
         </div>
 
         {logs.length > 0 && (
-          <div style={{ background: '#0f172a', borderRadius: 12, padding: '1.25rem', fontFamily: 'monospace', fontSize: '0.8125rem', color: '#94a3b8', maxHeight: 360, overflowY: 'auto', border: '1px solid #1e293b' }}>
+          <div style={{ background: '#0f172a', borderRadius: 12, padding: '1.25rem', fontFamily: 'monospace', fontSize: '0.8125rem', color: '#94a3b8', maxHeight: 400, overflowY: 'auto', border: '1px solid #1e293b' }}>
             {logs.map((l, i) => (
               <div key={i} style={{ color: l.startsWith('✅') ? '#10b981' : l.startsWith('⚠️') ? '#f59e0b' : l.startsWith('❌') ? '#ef4444' : l.startsWith('━') ? '#475569' : '#94a3b8', marginBottom: 2 }}>
                 {l}
