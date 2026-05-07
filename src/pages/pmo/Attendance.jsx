@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 const WORKER_ROLES = ['Construction Lead', 'Site Engineer', 'Electrician', 'Plumber', 'Civil Worker', 'IT Technician', 'Safety Officer', 'Facility Manager', 'Project Coordinator', 'Other'];
 
 export default function Attendance() {
-  const { user } = useAuth();
+  const { currentUser } = useAuth();
   const { data } = useStore();
   const projects = data.projects || [];
 
@@ -63,20 +63,21 @@ export default function Attendance() {
         date: selectedDate,
         status: r.status,
         notes: r.notes.trim() || null,
-        logged_by: user?.id || null,
+        logged_by: currentUser?.id || null,
         created_at: new Date().toISOString(),
       }));
 
       const { error } = await supabase.from('attendance').insert(records);
       if (error) throw error;
 
-      await store.addAuditLog({
-        user_id: user?.id,
-        action: 'Logged Attendance',
-        entity_type: 'attendance',
-        entity_id: selectedProject,
-        new_value: `${attendanceRows.length} workers — ${selectedDate}`,
-      });
+      await store.addAuditLog(
+        currentUser?.id,
+        'Logged Attendance',
+        'attendance',
+        selectedProject,
+        null,
+        { workers: attendanceRows.length, date: selectedDate }
+      );
 
       alert(`Attendance saved! ${presentCount} present, ${absentCount} absent.`);
       setAttendanceRows([{ id: 1, worker_name: '', role: 'Construction Lead', status: 'present', notes: '' }]);
