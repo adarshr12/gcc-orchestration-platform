@@ -4,38 +4,48 @@ import { store } from '../lib/store';
 
 const AuthContext = createContext({});
 
-// 🚀 LOCAL DEMO CREDENTIALS
+// Demo credentials — short passwords for the login form
 const DEMO_USERS = {
-  'pmo@demo.com': { 
-    id: 'ad68f966-c6cf-46fc-96d1-1c4e7b0dae48', // Matches Sarah Jenkins in DB
-    email: 'pmo@demo.com', 
-    name: 'Sarah Jenkins (Demo)', 
-    role: 'PMO',
-    password: 'pmo' 
-  },
-  'client@demo.com': { 
-    id: 'bd68f966-c6cf-46fc-96d1-1c4e7b0dae49', // Matches Michael Brown in DB
-    email: 'client@demo.com', 
-    name: 'Michael Brown (Demo)', 
-    role: 'Client',
-    password: 'client' 
-  }
+  'pmo@demo.com':     { email: 'pmo@demo.com',     name: 'Sarah Jenkins', role: 'PMO',    password: 'pmo'     },
+  'pmo2@demo.com':    { email: 'pmo2@demo.com',    name: 'Rahul Sharma',  role: 'PMO',    password: 'pmo2'    },
+  'client@demo.com':  { email: 'client@demo.com',  name: 'Michael Brown', role: 'Client', password: 'client'  },
+  'client2@demo.com': { email: 'client2@demo.com', name: 'David Kim',     role: 'Client', password: 'client2' },
+  'client3@demo.com': { email: 'client3@demo.com', name: 'Priya Mehta',   role: 'Client', password: 'client3' },
 };
+
+// Must match the password formula used in SeedPage.jsx's getOrCreateAuthUserId
+const demoAuthPassword = email =>
+  email.replace('@demo.com', '').replace(/[^a-zA-Z0-9]/g, '') + '_EmbarkGCC2025!';
+
+// Establish a real Supabase auth session for a demo user so that
+// RLS-protected table reads work correctly in the store.
+async function signInToSupabase(email) {
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password: demoAuthPassword(email),
+  });
+  return !error;
+}
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for Local Demo Session first
+    // Restore a saved demo session
     const savedDemoUser = localStorage.getItem('gcc_demo_user');
     if (savedDemoUser) {
-      setUser(JSON.parse(savedDemoUser));
-      setLoading(false);
+      const u = JSON.parse(savedDemoUser);
+      setUser(u);
+      // Re-establish Supabase auth JWT so store queries pass RLS on page refresh
+      signInToSupabase(u.email)
+        .then(() => store.reload())
+        .catch(() => {})
+        .finally(() => setLoading(false));
       return;
     }
 
-    // Otherwise check Supabase Session
+    // Otherwise check for an existing Supabase session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         fetchUserProfile(session.user);
@@ -46,9 +56,11 @@ export const AuthProvider = ({ children }) => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        fetchUserProfile(session.user);
+        // Don't override a demo session that's already active
+        if (!localStorage.getItem('gcc_demo_user')) {
+          fetchUserProfile(session.user);
+        }
       } else {
-        // Only clear if not in demo mode
         if (!localStorage.getItem('gcc_demo_user')) {
           setUser(null);
         }
@@ -65,19 +77,17 @@ export const AuthProvider = ({ children }) => {
         .select('*')
         .eq('id', authUser.id)
         .single();
-      
+
       if (error) throw error;
       setUser({ ...authUser, ...data });
-      // Trigger store data refetch now that we have an authenticated session
-      store.init();
+      store.reload();
     } catch (error) {
       console.error('Error fetching profile:', error);
-      // Fallback to basic auth info if profile fetch fails
-      setUser({ 
-        id: authUser.id, 
-        email: authUser.email, 
+      setUser({
+        id: authUser.id,
+        email: authUser.email,
         name: authUser.user_metadata?.name || authUser.email,
-        role: authUser.user_metadata?.role || 'Client'
+        role: authUser.user_metadata?.role || 'Client',
       });
     } finally {
       setLoading(false);
@@ -85,13 +95,24 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signIn = async (email, password) => {
-    // 🛡️ CHECK FOR LOCAL DEMO BYPASS
     if (DEMO_USERS[email] && DEMO_USERS[email].password === password) {
-      const demoUser = DEMO_USERS[email];
-      localStorage.setItem('gcc_demo_user', JSON.stringify(demoUser));
-      setUser(demoUser);
-      store.init();
-      return { data: demoUser, error: null };
+      const base = DEMO_USERS[email];
+
+      // Establish a real Supabase auth session so RLS-protected queries work
+      await signInToSupabase(email).catch(() => {});
+
+      // Fetch DB profile for assigned_project_id and the real DB-generated id
+      const { data: profile } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', base.email)
+        .single();
+
+      const fullUser = { ...base, ...(profile || {}), id: profile?.id };
+      localStorage.setItem('gcc_demo_user', JSON.stringify(fullUser));
+      setUser(fullUser);
+      store.reload();
+      return { data: fullUser, error: null };
     }
 
     // Fallback to real Supabase Auth
@@ -104,9 +125,7 @@ export const AuthProvider = ({ children }) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: metadata
-      }
+      options: { data: metadata },
     });
     if (error) throw error;
     return { data, error: null };
@@ -116,19 +135,21 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('gcc_demo_user');
     await supabase.auth.signOut();
     setUser(null);
+    store.data = Object.keys(store.data).reduce((acc, k) => { acc[k] = []; return acc; }, {});
+    store.initialized = false;
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      session: user, // Alias for App.jsx
-      currentUser: user, // Alias for other components
-      signIn, 
+    <AuthContext.Provider value={{
+      user,
+      session: user,
+      currentUser: user,
+      signIn,
       signUp,
-      logout, 
-      loading, 
-      isLoading: loading, // Alias for App.jsx
-      isPMO: user?.role === 'PMO' 
+      logout,
+      loading,
+      isLoading: loading,
+      isPMO: user?.role === 'PMO',
     }}>
       {!loading && children}
     </AuthContext.Provider>

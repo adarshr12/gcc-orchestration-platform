@@ -29,13 +29,23 @@ export default function ClientDashboard() {
     ...milestones.filter(m => m.status === 'In Progress' && new Date(m.due_date) < new Date()).map(m => ({ id: `m-${m.id}`, title: `Review ${m.milestone_name}`, type: 'Milestone', sub: `Due ${formatDate(m.due_date)}`, link: '/my-project' }))
   ];
 
+  const openEscalationsByWorkstream = {
+    'Legal & Entity': escalations.filter(e => e.status !== 'Resolved' && e.status !== 'Closed' && /legal|entity|incorporat/i.test(e.title)).length,
+    'Real Estate': escalations.filter(e => e.status !== 'Resolved' && e.status !== 'Closed' && /real estate|lease|property|office/i.test(e.title)).length,
+    'Talent Acquisition': escalations.filter(e => e.status !== 'Resolved' && e.status !== 'Closed' && /talent|hiring|recruit|HR/i.test(e.title)).length,
+    'IT Infrastructure': escalations.filter(e => e.status !== 'Resolved' && e.status !== 'Closed' && /IT|infra|network|tech/i.test(e.title)).length,
+    'Compliance': escalations.filter(e => e.status !== 'Resolved' && e.status !== 'Closed' && /compliance|regulat|audit/i.test(e.title)).length,
+  };
   const workstreams = [
-    { name: 'Legal & Entity', icon: Scale, status: 'On Track', color: '#10b981', health: 'Healthy' },
-    { name: 'Real Estate', icon: Building2, status: 'At Risk', color: '#f59e0b', health: 'SLA Breach' },
-    { name: 'Talent Acquisition', icon: Briefcase, status: 'On Track', color: '#10b981', health: 'Healthy' },
-    { name: 'IT Infrastructure', icon: Terminal, status: 'On Track', color: '#10b981', health: 'Healthy' },
-    { name: 'Compliance', icon: ShieldCheck, status: 'On Track', color: '#10b981', health: 'Healthy' },
-  ];
+    { name: 'Legal & Entity', icon: Scale },
+    { name: 'Real Estate', icon: Building2 },
+    { name: 'Talent Acquisition', icon: Briefcase },
+    { name: 'IT Infrastructure', icon: Terminal },
+    { name: 'Compliance', icon: ShieldCheck },
+  ].map(w => {
+    const hasIssue = openEscalationsByWorkstream[w.name] > 0;
+    return { ...w, status: hasIssue ? 'At Risk' : 'On Track', color: hasIssue ? '#f59e0b' : '#10b981' };
+  });
 
   return (
     <div className="fade-in">
@@ -124,28 +134,35 @@ export default function ClientDashboard() {
         ))}
       </div>
 
-      {/* Talent Funnel & Discussion */}
+      {/* Milestone Progress & Discussion */}
       <div className="grid-stack grid-2">
          <div className="card" style={{ padding: '2rem' }}>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: 800, marginBottom: '2rem' }}>GCC Talent Funnel</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-               {[
-                 { label: 'Open Requisitions', count: 124, color: 'var(--brand-primary)' },
-                 { label: 'Offers Extended', count: 42, color: '#818cf8' },
-                 { label: 'Offers Accepted', count: 31, color: '#10b981' },
-                 { label: 'Joined / Onboarded', count: 18, color: '#06b6d4' },
-               ].map(h => (
-                 <div key={h.label}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', marginBottom: 6 }}>
-                      <span style={{ fontWeight: 600 }}>{h.label}</span>
-                      <span style={{ fontWeight: 700 }}>{h.count}</span>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 800, marginBottom: '2rem' }}>Setup Milestone Progress</h3>
+            {milestones.length === 0 ? (
+              <div className="empty-state" style={{ padding: '2rem' }}>
+                <CheckCircle2 size={36} style={{ opacity: 0.2, marginBottom: '0.75rem' }} />
+                <div style={{ fontWeight: 600, color: 'var(--text-muted)' }}>No milestones configured yet</div>
+                <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Your PMO will add milestones during planning.</div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {milestones.slice(0, 5).map(m => {
+                  const colors = { Completed: '#10b981', Delayed: '#f59e0b', Overdue: '#ef4444', Upcoming: '#6366f1' };
+                  const color = colors[m.status] || '#6366f1';
+                  return (
+                    <div key={m.id}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', marginBottom: 5 }}>
+                        <span style={{ fontWeight: 600 }}>{m.milestone_name}</span>
+                        <span style={{ fontWeight: 700, color }}>{m.status}</span>
+                      </div>
+                      <div style={{ height: 8, background: '#f8fafc', borderRadius: 4, overflow: 'hidden' }}>
+                        <div style={{ width: m.status === 'Completed' ? '100%' : m.status === 'Delayed' ? '60%' : m.status === 'Overdue' ? '80%' : '20%', height: '100%', background: color, borderRadius: 4 }} />
+                      </div>
                     </div>
-                    <div style={{ height: 8, background: '#f8fafc', borderRadius: 4, overflow: 'hidden' }}>
-                      <div style={{ width: `${(h.count / 124) * 100}%`, height: '100%', background: h.color, borderRadius: 4 }} />
-                    </div>
-                 </div>
-               ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
          </div>
 
          <div className="card" style={{ padding: '0', display: 'flex', flexDirection: 'column' }}>

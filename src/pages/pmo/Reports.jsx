@@ -2,11 +2,14 @@ import { useStoreData } from '../../hooks/useStore';
 import { formatCurrency, getSLAStatus, getComplianceStatus } from '../../lib/utils';
 import { BarChart3, TrendingUp, Clock, Shield, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
+
 export default function Reports() {
   const projects = useStoreData('projects');
   const escalations = useStoreData('escalations');
   const milestones = useStoreData('milestones');
   const compliance = useStoreData('vendor_compliance');
+  const vendors = useStoreData('vendors');
+  const purchaseOrders = useStoreData('purchase_orders');
 
   // KPI Calculations based on Research
   const totalBudget = projects.reduce((s, p) => s + p.total_budget, 0);
@@ -31,6 +34,15 @@ export default function Reports() {
   // Vendor Compliance Rate (Target: 100%)
   const validDocs = compliance.filter(d => getComplianceStatus(d.expiry_date).status === 'Valid').length;
   const complianceRate = compliance.length > 0 ? ((validDocs / compliance.length) * 100).toFixed(0) : 100;
+
+  // Vendor Onboarding Rate: Approved vendors vs total
+  const approvedVendors = vendors.filter(v => v.status === 'Approved').length;
+  const vendorOnboardingRate = vendors.length > 0 ? ((approvedVendors / vendors.length) * 100).toFixed(0) : 100;
+
+  // PO Approval Rate: approved + fulfilled vs total excluding draft
+  const submittedPOs = purchaseOrders.filter(po => po.status !== 'Draft');
+  const approvedPOs = purchaseOrders.filter(po => po.status === 'Approved' || po.status === 'Fulfilled');
+  const poApprovalRate = submittedPOs.length > 0 ? ((approvedPOs.length / submittedPOs.length) * 100).toFixed(0) : 100;
 
   const kpis = [
     { label: 'Cost Performance (CPI)', value: cpi, target: '> 1.0', icon: TrendingUp, color: Number(cpi) >= 1 ? '#27AE60' : '#E74C3C', subtitle: 'Efficiency of budget spend' },
@@ -116,19 +128,19 @@ export default function Reports() {
             </div>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
-              <span style={{ fontSize: '0.875rem' }}>Vendor Onboarding (Avg 7d)</span>
-              <span style={{ fontWeight: 600 }}>92%</span>
+              <span style={{ fontSize: '0.875rem' }}>Vendor Onboarding Rate</span>
+              <span style={{ fontWeight: 600 }}>{vendorOnboardingRate}%</span>
             </div>
             <div style={{ height: 12, background: '#f3f4f6', borderRadius: 6, overflow: 'hidden' }}>
-              <div style={{ width: '92%', height: '100%', background: '#27AE60' }} />
+              <div style={{ width: `${vendorOnboardingRate}%`, height: '100%', background: '#27AE60' }} />
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
-              <span style={{ fontSize: '0.875rem' }}>PO Approval (Avg 2d)</span>
-              <span style={{ fontWeight: 600 }}>88%</span>
+              <span style={{ fontSize: '0.875rem' }}>PO Approval Rate</span>
+              <span style={{ fontWeight: 600 }}>{poApprovalRate}%</span>
             </div>
             <div style={{ height: 12, background: '#f3f4f6', borderRadius: 6, overflow: 'hidden' }}>
-              <div style={{ width: '88%', height: '100%', background: '#F39C12' }} />
+              <div style={{ width: `${poApprovalRate}%`, height: '100%', background: '#F39C12' }} />
             </div>
           </div>
         </div>

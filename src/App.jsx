@@ -1,20 +1,27 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 import TopNavbar from './components/layout/TopNavbar';
 import Sidebar from './components/layout/Sidebar';
 import AppRoutes from './routes';
 import Login from './pages/Login';
+import OnboardingTour from './components/common/OnboardingTour';
+import SeedPage from './pages/dev/SeedPage';
 
 function AppContent() {
   const { session, isLoading } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const location = useLocation();
 
-  // Close sidebar on navigation (mobile)
   useEffect(() => {
     setIsSidebarOpen(false);
-  }, [window.location.pathname]);
+  }, [location.pathname]);
+
+  // Dev seed page — accessible without login
+  if (location.pathname === '/seed') {
+    return <SeedPage />;
+  }
 
   if (isLoading) {
     return (
@@ -32,13 +39,14 @@ function AppContent() {
 
   return (
     <div className="app-container">
+      <OnboardingTour />
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      
+
       {/* Mobile Overlay */}
       {isSidebarOpen && (
-        <div 
-          onClick={() => setIsSidebarOpen(false)} 
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999, backdropFilter: 'blur(4px)' }} 
+        <div
+          onClick={() => setIsSidebarOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999, backdropFilter: 'blur(4px)' }}
         />
       )}
 

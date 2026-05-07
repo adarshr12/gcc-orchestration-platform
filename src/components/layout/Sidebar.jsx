@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { LayoutDashboard, FolderKanban, Users, FileText, AlertTriangle, ShieldCheck, BarChart3, Bell, Briefcase, History, X, LogOut } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Users, FileText, AlertTriangle, ShieldCheck, BarChart3, Bell, Briefcase, History, X, LogOut, ClipboardList } from 'lucide-react';
 
 const PMO_LINKS = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -9,6 +9,7 @@ const PMO_LINKS = [
   { to: '/purchase-orders', icon: FileText, label: 'Purchase Orders' },
   { to: '/escalations', icon: AlertTriangle, label: 'Escalations' },
   { to: '/safety', icon: ShieldCheck, label: 'Safety' },
+  { to: '/attendance', icon: ClipboardList, label: 'Attendance' },
   { to: '/reports', icon: BarChart3, label: 'Reports' },
   { to: '/audit', icon: History, label: 'Audit History' },
 ];

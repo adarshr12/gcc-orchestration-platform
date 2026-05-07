@@ -64,7 +64,7 @@ export default function PMODashboard() {
                 <div>
                   <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#991b1b', textTransform: 'uppercase' }}>SLA BREACH DETECTED</div>
                   <div style={{ fontSize: '0.875rem', fontWeight: 600, marginTop: '0.25rem' }}>{e.title}</div>
-                  <div style={{ fontSize: '0.75rem', color: '#b91c1c', marginTop: '0.25rem' }}>Ball-in-Court: PMO Manager</div>
+                  <div style={{ fontSize: '0.75rem', color: '#b91c1c', marginTop: '0.25rem' }}>Action required · Pending PMO review</div>
                 </div>
               </div>
             </div>
@@ -143,7 +143,7 @@ export default function PMODashboard() {
           { label: 'Active Projects', value: activeProjects, sub: `${blockedProjects} Blocked`, icon: FolderKanban, color: '#6366f1', bg: '#eef2ff' },
           { label: 'Open Escalations', value: openEscalations.length, sub: `${breachedEscalations.length} Breached`, icon: AlertTriangle, color: '#f43f5e', bg: '#fff1f2' },
           { label: 'Portfolio Variance', value: `${budgetVariance}%`, sub: '±5% Target', icon: TrendingUp, color: '#10b981', bg: '#ecfdf5' },
-          { label: 'Pending Approvals', value: pendingPOs.length, sub: 'Ball-in-Court: You', icon: CheckCircle2, color: '#f59e0b', bg: '#fffbeb' },
+          { label: 'Pending Approvals', value: pendingPOs.length, sub: 'Awaiting your sign-off', icon: CheckCircle2, color: '#f59e0b', bg: '#fffbeb' },
         ].map((stat, i) => (
           <div key={i} className="card card-stat" style={{ padding: '1.5rem', cursor: 'pointer' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>

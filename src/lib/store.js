@@ -17,6 +17,7 @@ const TABLE_CONFIG = {
   safety_checklist_items: { pk: 'id' },
   audit_logs: { pk: 'id' },
   comments: { pk: 'id' },
+  attendance: { pk: 'id' },
 };
 
 const INITIAL_DATA = Object.keys(TABLE_CONFIG).reduce((acc, table) => {
@@ -39,6 +40,13 @@ class DataStore {
 
   notify() {
     this.listeners.forEach(fn => fn());
+  }
+
+  // Force a fresh fetch regardless of current loading state (call after auth changes)
+  async reload() {
+    this.loading = false;
+    this.initialized = false;
+    return this.init();
   }
 
   async init() {

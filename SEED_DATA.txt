@@ -1,0 +1,1104 @@
+================================================================================
+EMBARK GCC PLATFORM — FULL SEED DATA
+================================================================================
+This file contains every record seeded into the database for the demo environment.
+Share this with your database administrator to manually insert the data.
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+TABLE: users
+────────────────────────────────────────────────────────────────────────────────
+NOTE: users.id must match the UUID from Supabase Auth (auth.users table).
+      Create each user in Supabase Auth first, then insert into public.users.
+
+Password formula for all demo users:
+  <email-prefix>_EmbarkGCC2025!
+  e.g.  pmo@demo.com        → password: pmo_EmbarkGCC2025!
+        pmo2@demo.com       → password: pmo2_EmbarkGCC2025!
+        client@demo.com     → password: client_EmbarkGCC2025!
+        client2@demo.com    → password: client2_EmbarkGCC2025!
+        client3@demo.com    → password: client3_EmbarkGCC2025!
+
+Short login passwords used in the app login form (demo bypass):
+  pmo@demo.com        → pmo
+  pmo2@demo.com       → pmo2
+  client@demo.com     → client
+  client2@demo.com    → client2
+  client3@demo.com    → client3
+
+Record 1:
+  email    : pmo@demo.com
+  name     : Sarah Jenkins
+  role     : PMO
+  phone    : +91-9876540001
+
+Record 2:
+  email    : pmo2@demo.com
+  name     : Rahul Sharma
+  role     : PMO
+  phone    : +91-9876540002
+
+Record 3:
+  email    : client@demo.com
+  name     : Michael Brown
+  role     : Client
+  phone    : +1-212-555-0182
+  assigned_project_id: [JPMorgan India GCC — set after project is inserted]
+
+Record 4:
+  email    : client2@demo.com
+  name     : David Kim
+  role     : Client
+  phone    : +1-212-555-0183
+  assigned_project_id: [Goldman Sachs Tech Hub — set after project is inserted]
+
+Record 5:
+  email    : client3@demo.com
+  name     : Priya Mehta
+  role     : Client
+  phone    : +91-9876540003
+  assigned_project_id: [Microsoft Innovation Centre — set after project is inserted]
+
+
+────────────────────────────────────────────────────────────────────────────────
+TABLE: projects
+────────────────────────────────────────────────────────────────────────────────
+
+Record 1:
+  project_name    : JPMorgan India GCC
+  location        : Bangalore
+  client_name     : JPMorgan Chase
+  current_stage   : 3
+  stage_status    : In Progress
+  total_budget    : 80000000   (₹8 crore)
+  actual_spent    : 14500000   (₹14.5 lakh)
+  start_date      : 2024-11-01
+  target_end_date : 2025-12-31
+  created_by      : Sarah Jenkins (pmo@demo.com)
+
+Record 2:
+  project_name    : Goldman Sachs Tech Hub
+  location        : Hyderabad
+  client_name     : Goldman Sachs
+  current_stage   : 5
+  stage_status    : Blocked
+  total_budget    : 55000000   (₹5.5 crore)
+  actual_spent    : 48000000   (₹4.8 crore)
+  start_date      : 2024-06-01
+  target_end_date : 2025-07-31
+  created_by      : Sarah Jenkins (pmo@demo.com)
+
+Record 3:
+  project_name    : Microsoft Innovation Centre
+  location        : Pune
+  client_name     : Microsoft Corporation
+  current_stage   : 1
+  stage_status    : In Progress
+  total_budget    : 45000000   (₹4.5 crore)
+  actual_spent    : 800000     (₹8 lakh)
+  start_date      : 2025-03-01
+  target_end_date : 2026-06-30
+  created_by      : Rahul Sharma (pmo2@demo.com)
+
+
+────────────────────────────────────────────────────────────────────────────────
+TABLE: stages  (18 records — 6 stages per project)
+────────────────────────────────────────────────────────────────────────────────
+Stage names in order:
+  1 — Discovery
+  2 — Evaluation
+  3 — Model Selection
+  4 — Design & Planning
+  5 — Construction & Execution
+  6 — Handover & Post-Construction
+
+Rules applied during seed:
+  - Stages BEFORE current_stage  → status: Completed,    completion_percentage: 100
+  - Stage EQUAL TO current_stage → status: In Progress (or Blocked), completion_percentage: 40 (or 65 if Blocked)
+  - Stages AFTER current_stage   → status: Not Started,  completion_percentage: 0
+
+--- JPMorgan India GCC (current_stage = 3) ---
+
+Stage 1 — Discovery
+  status: Completed | completion_percentage: 100
+
+Stage 2 — Evaluation
+  status: Completed | completion_percentage: 100
+
+Stage 3 — Model Selection
+  status: In Progress | completion_percentage: 40
+
+Stage 4 — Design & Planning
+  status: Not Started | completion_percentage: 0
+
+Stage 5 — Construction & Execution
+  status: Not Started | completion_percentage: 0
+
+Stage 6 — Handover & Post-Construction
+  status: Not Started | completion_percentage: 0
+
+--- Goldman Sachs Tech Hub (current_stage = 5, stage_status = Blocked) ---
+
+Stage 1 — Discovery
+  status: Completed | completion_percentage: 100
+
+Stage 2 — Evaluation
+  status: Completed | completion_percentage: 100
+
+Stage 3 — Model Selection
+  status: Completed | completion_percentage: 100
+
+Stage 4 — Design & Planning
+  status: Completed | completion_percentage: 100
+
+Stage 5 — Construction & Execution
+  status: Blocked | completion_percentage: 65
+
+Stage 6 — Handover & Post-Construction
+  status: Not Started | completion_percentage: 0
+
+--- Microsoft Innovation Centre (current_stage = 1) ---
+
+Stage 1 — Discovery
+  status: In Progress | completion_percentage: 40
+
+Stage 2 — Evaluation
+  status: Not Started | completion_percentage: 0
+
+Stage 3 — Model Selection
+  status: Not Started | completion_percentage: 0
+
+Stage 4 — Design & Planning
+  status: Not Started | completion_percentage: 0
+
+Stage 5 — Construction & Execution
+  status: Not Started | completion_percentage: 0
+
+Stage 6 — Handover & Post-Construction
+  status: Not Started | completion_percentage: 0
+
+
+────────────────────────────────────────────────────────────────────────────────
+TABLE: stage_gates  (54 records — 3 gates per stage, 18 stages)
+────────────────────────────────────────────────────────────────────────────────
+Each stage has 3 gate checklist items.
+is_required = true for all.
+is_completed = true for Completed stages, false otherwise.
+verified_by = PMO user (Sarah Jenkins) for completed stages.
+
+Gate items by stage number:
+
+Stage 1 — Discovery:
+  1. India Market Feasibility Report Submitted
+  2. Talent Availability & Cost Analysis Approved
+  3. Top 5 Target Cities Shortlisted
+
+Stage 2 — Evaluation:
+  1. City Comparison Matrix Completed (Bangalore / Hyderabad / Pune)
+  2. Cost-of-Operations & Real Estate Analysis Done
+  3. Talent Supply-Demand Assessment Approved
+
+Stage 3 — Model Selection:
+  1. GCC Operating Model Decided (Captive / BOT / Co-managed)
+  2. Implementation Partner Shortlisted & NDA Signed
+  3. Legal Entity Type Agreed (WOS / LLP / Branch Office)
+
+Stage 4 — Design & Planning:
+  1. Office Floor Plan & Space Allocation Finalized
+  2. IT Network Architecture Blueprint Approved
+  3. HR Policy Framework v1 Submitted
+
+Stage 5 — Construction & Execution:
+  1. Office Fit-Out 60% Milestone Passed
+  2. IT Infrastructure Rack & Stack Completed
+  3. First Cohort of Employees Onboarded (≥50)
+
+Stage 6 — Handover & Post-Construction:
+  1. Final Site Walkthrough & Snagging List Closed
+  2. GCC Operations SOP Handover Package Signed
+  3. Post-Handover Review Meeting Completed with Client
+
+
+────────────────────────────────────────────────────────────────────────────────
+TABLE: milestones  (11 records)
+────────────────────────────────────────────────────────────────────────────────
+Status values: Completed / Overdue / Upcoming
+Priority values: High / Medium
+
+--- JPMorgan India GCC ---
+
+Record 1:
+  milestone_name : India Feasibility Report
+  due_date       : ~80 days ago
+  status         : Completed
+  owner          : Sarah Jenkins (pmo@demo.com)
+  priority       : High
+
+Record 2:
+  milestone_name : Bangalore City Selection Approved
+  due_date       : ~50 days ago
+  status         : Completed
+  owner          : Sarah Jenkins (pmo@demo.com)
+  priority       : High
+
+Record 3:
+  milestone_name : BOT Partner RFQ Responses Received
+  due_date       : ~5 days ago
+  status         : Overdue
+  owner          : Sarah Jenkins (pmo@demo.com)
+  priority       : High
+
+Record 4:
+  milestone_name : Legal Entity Incorporation Filing
+  due_date       : ~20 days from now
+  status         : Upcoming
+  owner          : Rahul Sharma (pmo2@demo.com)
+  priority       : High
+
+Record 5:
+  milestone_name : Office Location Shortlist (Top 3)
+  due_date       : ~35 days from now
+  status         : Upcoming
+  owner          : Rahul Sharma (pmo2@demo.com)
+  priority       : Medium
+
+--- Goldman Sachs Tech Hub ---
+
+Record 6:
+  milestone_name : Office Fit-Out Structural Work Complete
+  due_date       : ~30 days ago
+  status         : Completed
+  owner          : Sarah Jenkins (pmo@demo.com)
+  priority       : High
+
+Record 7:
+  milestone_name : IT Network Cabling & Rack Installation
+  due_date       : ~10 days ago
+  status         : Overdue
+  owner          : Sarah Jenkins (pmo@demo.com)
+  priority       : High
+
+Record 8:
+  milestone_name : First 100 Employees Onboarded
+  due_date       : ~15 days from now
+  status         : Upcoming
+  owner          : Rahul Sharma (pmo2@demo.com)
+  priority       : High
+
+Record 9:
+  milestone_name : GCC Go-Live & Handover
+  due_date       : ~45 days from now
+  status         : Upcoming
+  owner          : Sarah Jenkins (pmo@demo.com)
+  priority       : High
+
+--- Microsoft Innovation Centre ---
+
+Record 10:
+  milestone_name : India GCC Entry Strategy Workshop
+  due_date       : ~10 days from now
+  status         : Upcoming
+  owner          : Rahul Sharma (pmo2@demo.com)
+  priority       : High
+
+Record 11:
+  milestone_name : City Feasibility Report: Pune vs Hyderabad
+  due_date       : ~25 days from now
+  status         : Upcoming
+  owner          : Rahul Sharma (pmo2@demo.com)
+  priority       : High
+
+
+────────────────────────────────────────────────────────────────────────────────
+TABLE: vendors  (7 records)
+────────────────────────────────────────────────────────────────────────────────
+Status values: Approved / Pending / Inactive
+
+--- JPMorgan India GCC ---
+
+Record 1:
+  vendor_name     : Prestige Constructions Pvt Ltd
+  vendor_type     : Construction
+  contact_email   : procurement@prestigeconstructions.in
+  contact_phone   : +91-80-4120-3344
+  status          : Approved
+  onboarding_date : ~90 days ago
+  approved_by     : Sarah Jenkins (pmo@demo.com)
+
+Record 2:
+  vendor_name     : Khaitan & Co LLP
+  vendor_type     : Legal
+  contact_email   : bangalore@khaitanco.com
+  contact_phone   : +91-80-4617-9600
+  status          : Approved
+  onboarding_date : ~100 days ago
+  approved_by     : Sarah Jenkins (pmo@demo.com)
+
+Record 3:
+  vendor_name     : Aon Hewitt India
+  vendor_type     : HR
+  contact_email   : info.india@aon.com
+  contact_phone   : +91-80-4653-7700
+  status          : Pending
+  onboarding_date : (not yet onboarded)
+  approved_by     : (none)
+
+--- Goldman Sachs Tech Hub ---
+
+Record 4:
+  vendor_name     : L&T Construction India
+  vendor_type     : Construction
+  contact_email   : hyderabad@lntecc.com
+  contact_phone   : +91-40-4030-5500
+  status          : Approved
+  onboarding_date : ~150 days ago
+  approved_by     : Sarah Jenkins (pmo@demo.com)
+
+Record 5:
+  vendor_name     : Cisco Systems India
+  vendor_type     : IT
+  contact_email   : procurement@cisco.com
+  contact_phone   : +91-40-6700-1234
+  status          : Approved
+  onboarding_date : ~120 days ago
+  approved_by     : Sarah Jenkins (pmo@demo.com)
+
+Record 6:
+  vendor_name     : CBRE India Pvt Ltd
+  vendor_type     : Facilities
+  contact_email   : facilities.hyd@cbre.com
+  contact_phone   : +91-40-6630-8800
+  status          : Approved
+  onboarding_date : ~140 days ago
+  approved_by     : Sarah Jenkins (pmo@demo.com)
+
+--- Microsoft Innovation Centre ---
+
+Record 7:
+  vendor_name     : JLL India Pvt Ltd
+  vendor_type     : Real Estate
+  contact_email   : pune@jll.com
+  contact_phone   : +91-20-4100-5500
+  status          : Approved
+  onboarding_date : ~20 days ago
+  approved_by     : Rahul Sharma (pmo2@demo.com)
+
+
+────────────────────────────────────────────────────────────────────────────────
+TABLE: vendor_compliance  (15 records)
+────────────────────────────────────────────────────────────────────────────────
+Status values: Valid / Expiring Soon / Expired
+"Expiring Soon" = expiry within 20 days from seed date
+"Expired" = expiry already past
+
+--- Prestige Constructions Pvt Ltd ---
+
+Record 1:
+  document_name  : GST Registration Certificate
+  document_type  : GST Certificate
+  status         : Valid
+  expiry_date    : +2 years from seed date
+  file_name      : Prestige_GST.pdf
+  uploaded_by    : Sarah Jenkins
+
+Record 2:
+  document_name  : Contractor All-Risk Insurance
+  document_type  : Insurance
+  status         : Valid
+  expiry_date    : +1 year from seed date
+  file_name      : Prestige_Insurance.pdf
+  uploaded_by    : Sarah Jenkins
+
+Record 3:
+  document_name  : ISO 9001:2015 Certification
+  document_type  : Quality Cert
+  status         : Expiring Soon  ⚠️
+  expiry_date    : +20 days from seed date
+  file_name      : Prestige_ISO9001.pdf
+  uploaded_by    : Sarah Jenkins
+
+--- Khaitan & Co LLP ---
+
+Record 4:
+  document_name  : GST Registration Certificate
+  document_type  : GST Certificate
+  status         : Valid
+  expiry_date    : +2 years from seed date
+  file_name      : Khaitan_GST.pdf
+  uploaded_by    : Sarah Jenkins
+
+Record 5:
+  document_name  : Professional Indemnity Insurance
+  document_type  : Insurance
+  status         : Valid
+  expiry_date    : +1 year from seed date
+  file_name      : Khaitan_PI_Insurance.pdf
+  uploaded_by    : Sarah Jenkins
+
+--- Aon Hewitt India ---
+
+Record 6:
+  document_name  : GST Registration Certificate
+  document_type  : GST Certificate
+  status         : Expired  🔴
+  expiry_date    : -15 days from seed date (already expired)
+  file_name      : Aon_GST_EXPIRED.pdf
+  uploaded_by    : Sarah Jenkins
+  NOTE           : This blocks all POs for Aon Hewitt
+
+--- L&T Construction India ---
+
+Record 7:
+  document_name  : GST Registration Certificate
+  document_type  : GST Certificate
+  status         : Valid
+  expiry_date    : +2 years from seed date
+  file_name      : LnT_GST.pdf
+  uploaded_by    : Sarah Jenkins
+
+Record 8:
+  document_name  : Workmen Compensation Insurance
+  document_type  : Insurance
+  status         : Valid
+  expiry_date    : +1 year from seed date
+  file_name      : LnT_WC_Insurance.pdf
+  uploaded_by    : Sarah Jenkins
+
+Record 9:
+  document_name  : ISO 14001 Environment Cert
+  document_type  : Quality Cert
+  status         : Valid
+  expiry_date    : +1 year from seed date
+  file_name      : LnT_ISO14001.pdf
+  uploaded_by    : Sarah Jenkins
+
+--- Cisco Systems India ---
+
+Record 10:
+  document_name  : GST Registration Certificate
+  document_type  : GST Certificate
+  status         : Valid
+  expiry_date    : +2 years from seed date
+  file_name      : Cisco_GST.pdf
+  uploaded_by    : Sarah Jenkins
+
+Record 11:
+  document_name  : Cyber Liability Insurance
+  document_type  : Insurance
+  status         : Valid
+  expiry_date    : +1 year from seed date
+  file_name      : Cisco_CyberLiability.pdf
+  uploaded_by    : Sarah Jenkins
+
+--- CBRE India Pvt Ltd ---
+
+Record 12:
+  document_name  : GST Registration Certificate
+  document_type  : GST Certificate
+  status         : Valid
+  expiry_date    : +2 years from seed date
+  file_name      : CBRE_GST.pdf
+  uploaded_by    : Sarah Jenkins
+
+Record 13:
+  document_name  : Facility Management License
+  document_type  : Other
+  status         : Expiring Soon  ⚠️
+  expiry_date    : +20 days from seed date
+  file_name      : CBRE_FM_License.pdf
+  uploaded_by    : Sarah Jenkins
+
+--- JLL India Pvt Ltd ---
+
+Record 14:
+  document_name  : GST Registration Certificate
+  document_type  : GST Certificate
+  status         : Valid
+  expiry_date    : +2 years from seed date
+  file_name      : JLL_GST.pdf
+  uploaded_by    : Rahul Sharma
+
+Record 15:
+  document_name  : RERA Registration Certificate
+  document_type  : Other
+  status         : Valid
+  expiry_date    : +1 year from seed date
+  file_name      : JLL_RERA.pdf
+  uploaded_by    : Rahul Sharma
+
+
+────────────────────────────────────────────────────────────────────────────────
+TABLE: budget  (15 records — 5 phases per project)
+────────────────────────────────────────────────────────────────────────────────
+
+--- JPMorgan India GCC ---
+
+Phase 1: Discovery & Advisory
+  planned_amount : 3,000,000   (₹30L)
+  actual_amount  : 2,800,000   (₹28L)
+
+Phase 2: Legal & Entity Setup
+  planned_amount : 5,000,000   (₹50L)
+  actual_amount  : 4,200,000   (₹42L)
+
+Phase 3: Office Fit-Out & Civil
+  planned_amount : 40,000,000  (₹4 Cr)
+  actual_amount  : 0
+
+Phase 4: IT Infrastructure
+  planned_amount : 20,000,000  (₹2 Cr)
+  actual_amount  : 0
+
+Phase 5: HR, Talent & Onboarding
+  planned_amount : 12,000,000  (₹1.2 Cr)
+  actual_amount  : 7,500,000   (₹75L)
+
+--- Goldman Sachs Tech Hub ---
+
+Phase 1: Discovery & Advisory
+  planned_amount : 2,000,000   (₹20L)
+  actual_amount  : 1,950,000   (₹19.5L)
+
+Phase 2: Legal & Entity Setup
+  planned_amount : 3,000,000   (₹30L)
+  actual_amount  : 3,100,000   (₹31L)  — overrun
+
+Phase 3: Office Fit-Out & Civil
+  planned_amount : 28,000,000  (₹2.8 Cr)
+  actual_amount  : 28,500,000  (₹2.85 Cr)  — overrun
+
+Phase 4: IT Infrastructure
+  planned_amount : 12,000,000  (₹1.2 Cr)
+  actual_amount  : 14,450,000  (₹1.44 Cr)  — overrun (20.4%)
+
+Phase 5: HR, Talent & Onboarding
+  planned_amount : 10,000,000  (₹1 Cr)
+  actual_amount  : 0
+
+--- Microsoft Innovation Centre ---
+
+Phase 1: Discovery & Advisory
+  planned_amount : 2,500,000   (₹25L)
+  actual_amount  : 800,000     (₹8L)
+
+Phase 2: Legal & Entity Setup
+  planned_amount : 4,000,000   (₹40L)
+  actual_amount  : 0
+
+Phase 3: Office Fit-Out & Civil
+  planned_amount : 22,000,000  (₹2.2 Cr)
+  actual_amount  : 0
+
+Phase 4: IT Infrastructure
+  planned_amount : 10,000,000  (₹1 Cr)
+  actual_amount  : 0
+
+Phase 5: HR, Talent & Onboarding
+  planned_amount : 6,500,000   (₹65L)
+  actual_amount  : 0
+
+
+────────────────────────────────────────────────────────────────────────────────
+TABLE: purchase_orders  (7 records)
+────────────────────────────────────────────────────────────────────────────────
+Status values: Approved / Pending Approval / Rejected
+
+--- JPMorgan India GCC ---
+
+PO-2025-001
+  vendor          : Khaitan & Co LLP
+  amount          : 4,200,000  (₹42L)
+  description     : WOS incorporation, ROC filing, and regulatory advisory for JPMorgan India GCC
+  phase           : Legal & Entity Setup
+  status          : Approved
+  created_by      : Sarah Jenkins
+  approved_by     : Sarah Jenkins
+  approval_date   : ~70 days ago
+
+PO-2025-002
+  vendor          : Prestige Constructions Pvt Ltd
+  amount          : 2,800,000  (₹28L)
+  description     : Pre-construction consultancy: site survey, feasibility, space planning — Bangalore GCC
+  phase           : Discovery & Advisory
+  status          : Approved
+  created_by      : Sarah Jenkins
+  approved_by     : Sarah Jenkins
+  approval_date   : ~85 days ago
+
+PO-2025-003
+  vendor          : Aon Hewitt India
+  amount          : 1,500,000  (₹15L)
+  description     : HR policy framework, compensation benchmarking, and talent acquisition strategy
+  phase           : HR, Talent & Onboarding
+  status          : Rejected
+  created_by      : Sarah Jenkins
+  approved_by     : Sarah Jenkins
+  approval_date   : ~20 days ago
+  rejection_reason: Vendor compliance documents expired. Aon Hewitt must renew GST certificate before PO can be raised.
+
+--- Goldman Sachs Tech Hub ---
+
+PO-2025-004
+  vendor          : L&T Construction India
+  amount          : 28,500,000  (₹2.85 Cr)
+  description     : Complete office fit-out and civil construction — Goldman Sachs Tech Hub Hyderabad, 45,000 sqft
+  phase           : Office Fit-Out & Civil
+  status          : Approved
+  created_by      : Sarah Jenkins
+  approved_by     : Sarah Jenkins
+  approval_date   : ~120 days ago
+
+PO-2025-005
+  vendor          : Cisco Systems India
+  amount          : 14,450,000  (₹1.44 Cr)
+  description     : IT infrastructure: structured cabling, server racks, Cisco Catalyst switch stack, Meraki Wi-Fi, firewall
+  phase           : IT Infrastructure
+  status          : Pending Approval  ⚠️  SLA BREACHED (72+ hours pending)
+  created_by      : Sarah Jenkins
+  approved_by     : (none — pending)
+  sla_due_date    : 72 hours ago
+
+PO-2025-006
+  vendor          : CBRE India Pvt Ltd
+  amount          : 3,600,000  (₹36L)
+  description     : 12-month facility management: housekeeping, security, cafeteria, maintenance — Hyderabad office
+  phase           : Discovery & Advisory
+  status          : Approved
+  created_by      : Sarah Jenkins
+  approved_by     : Rahul Sharma
+  approval_date   : ~100 days ago
+
+--- Microsoft Innovation Centre ---
+
+PO-2025-007
+  vendor          : JLL India Pvt Ltd
+  amount          : 800,000  (₹8L)
+  description     : Pune market feasibility study and shortlisting of 3 office micro-markets for Microsoft Innovation Centre
+  phase           : Discovery & Advisory
+  status          : Approved
+  created_by      : Rahul Sharma
+  approved_by     : Sarah Jenkins
+  approval_date   : ~18 days ago
+
+
+────────────────────────────────────────────────────────────────────────────────
+TABLE: escalations  (5 records)
+────────────────────────────────────────────────────────────────────────────────
+Severity values : Critical / High / Medium / Low
+Status values   : Open / In Progress / Resolved
+
+--- JPMorgan India GCC ---
+
+Escalation 1:
+  title         : Civil Fit-Out Behind Schedule — Risking Go-Live Date
+  description   : The office civil work is running 3 weeks behind the agreed Gantt plan. False
+                  ceiling and flooring on floors 2 and 3 are incomplete. At current pace we risk
+                  missing our December go-live date. Need a recovery plan from the contractor
+                  within 48 hours.
+  severity      : High
+  status        : In Progress
+  raised_by     : Michael Brown (client@demo.com)
+  assigned_to   : Sarah Jenkins (pmo@demo.com)
+  sla_due_date  : SLA BREACHED — 30 hours overdue
+  created_at    : ~2 days ago
+
+Escalation 2:
+  title         : Aon Hewitt GST Certificate Expired — PO Blocked
+  description   : Aon Hewitt India GST registration expired 15 days ago. Cannot raise the HR
+                  advisory PO (PO-2025-003) until renewed. Aon notified twice, no response.
+                  HR policy framework milestone is at risk.
+  severity      : Medium
+  status        : Open
+  raised_by     : Sarah Jenkins (pmo@demo.com)
+  assigned_to   : Rahul Sharma (pmo2@demo.com)
+  sla_due_date  : ~2 days from now
+  created_at    : ~1 day ago
+
+--- Goldman Sachs Tech Hub ---
+
+Escalation 3:
+  title         : IT Infrastructure Budget Overrun — Urgent Approval Needed
+  description   : IT infrastructure phase exceeded approved budget by Rs 24.5 lakh (20.4%
+                  variance). Additional cost driven by higher-spec firewalls required for Goldman
+                  InfoSec standards. PO-2025-005 pending for 3 days — SLA breached. Requesting
+                  urgent sign-off to unblock the contractor.
+  severity      : Critical
+  status        : In Progress
+  raised_by     : David Kim (client2@demo.com)
+  assigned_to   : Sarah Jenkins (pmo@demo.com)
+  sla_due_date  : SLA BREACHED — 2 hours overdue (Critical SLA = 4 hours)
+  created_at    : ~1 day ago
+
+Escalation 4:
+  title         : Safety Inspection Non-Compliance — Floor 1 Electrical
+  description   : Site inspection on Floor 1 flagged exposed electrical conduits near the server
+                  room entry. Non-compliance under IS:732 electrical safety standards. L&T site
+                  supervisor notified and remediation in progress.
+  severity      : High
+  status        : Resolved
+  raised_by     : Sarah Jenkins (pmo@demo.com)
+  assigned_to   : Rahul Sharma (pmo2@demo.com)
+  sla_due_date  : 8 days ago
+  resolved_at   : 6 days ago
+  created_at    : 10 days ago
+
+--- Microsoft Innovation Centre ---
+
+Escalation 5:
+  title         : Strategy Workshop Date Confirmation Needed
+  description   : The India GCC Entry Strategy Workshop is scheduled for next week but we have
+                  not received a calendar invite, venue confirmation, or attendee list from
+                  Embark. Our CHRO is travelling internationally after this week. Please confirm
+                  dates urgently.
+  severity      : Medium
+  status        : Open
+  raised_by     : Priya Mehta (client3@demo.com)
+  assigned_to   : Rahul Sharma (pmo2@demo.com)
+  sla_due_date  : ~4 days from now
+  created_at    : ~1 day ago
+
+
+────────────────────────────────────────────────────────────────────────────────
+TABLE: escalation_comments  (11 records)
+────────────────────────────────────────────────────────────────────────────────
+is_internal = true means comment is only visible to PMO users, not the client.
+
+--- Escalation 1 (Civil Fit-Out Behind Schedule) ---
+
+Comment 1:
+  comment_by    : Michael Brown (client@demo.com)
+  is_internal   : false
+  created_at    : ~2 days ago
+  text          : "This is becoming a serious concern. Our CHRO is tracking the go-live date
+                   closely. Can Embark confirm a recovery plan by EOD tomorrow?"
+
+Comment 2:
+  comment_by    : Sarah Jenkins (pmo@demo.com)
+  is_internal   : false
+  created_at    : ~1 day ago
+  text          : "Acknowledged, Michael. I have called an urgent site meeting with Prestige
+                   Constructions for tomorrow 9 AM. Will share the recovery plan and revised
+                   Gantt by 5 PM."
+
+Comment 3:
+  comment_by    : Sarah Jenkins (pmo@demo.com)
+  is_internal   : true   [INTERNAL — not visible to client]
+  created_at    : ~1 day ago
+  text          : "[Internal] Prestige site manager mentioned they are short on tiling workers.
+                   May need a second sub-contractor. Need director approval if cost impact > Rs 5L."
+
+Comment 4:
+  comment_by    : Michael Brown (client@demo.com)
+  is_internal   : false
+  created_at    : ~1 day ago
+  text          : "Thank you Sarah. Please also include an impact assessment on the IT installation
+                   schedule — if civil is delayed, Cisco cannot begin rack work either."
+
+--- Escalation 2 (Aon Hewitt GST Expired) ---
+
+Comment 5:
+  comment_by    : Sarah Jenkins (pmo@demo.com)
+  is_internal   : false
+  created_at    : ~1 day ago
+  text          : "Sent formal notice to Aon Hewitt procurement on 2 May. Awaiting renewal
+                   confirmation. Will follow up by phone tomorrow."
+
+Comment 6:
+  comment_by    : Rahul Sharma (pmo2@demo.com)
+  is_internal   : false
+  created_at    : today
+  text          : "Called Aon Hewitt account manager. They confirmed GST renewal is in process —
+                   expect document by end of week. Will update once received."
+
+--- Escalation 3 (IT Infrastructure Budget Overrun) ---
+
+Comment 7:
+  comment_by    : David Kim (client2@demo.com)
+  is_internal   : false
+  created_at    : ~1 day ago
+  text          : "We understand the InfoSec requirement but a 20% variance needs CFO sign-off on
+                   our end. Can Embark share the technical justification document to fast-track
+                   internal approval?"
+
+Comment 8:
+  comment_by    : Sarah Jenkins (pmo@demo.com)
+  is_internal   : false
+  created_at    : ~1 day ago
+  text          : "Sharing Cisco technical specification sheet and budget variance breakdown.
+                   The Firepower 2100 series was mandated by Goldman InfoSec during the last audit.
+                   Happy to schedule a call if that helps."
+
+Comment 9:
+  comment_by    : Sarah Jenkins (pmo@demo.com)
+  is_internal   : true   [INTERNAL — not visible to client]
+  created_at    : ~1 day ago
+  text          : "[Internal] If client does not approve by end of day, PO SLA hits at 6 PM.
+                   Loop in director for priority escalation path."
+
+--- Escalation 4 (Safety Non-Compliance Floor 1) ---
+
+Comment 10:
+  comment_by    : Rahul Sharma (pmo2@demo.com)
+  is_internal   : false
+  created_at    : ~6 days ago
+  text          : "L&T site engineer confirmed remediation complete. All exposed conduits enclosed
+                   per IS:732. Re-inspection passed. Closing this escalation."
+
+--- Escalation 5 (Strategy Workshop Date) ---
+
+Comment 11:
+  comment_by    : Rahul Sharma (pmo2@demo.com)
+  is_internal   : false
+  created_at    : today
+  text          : "Priya, apologies for the delay. The workshop is confirmed for Thursday 10 AM
+                   at JW Marriott Pune. Calendar invite with agenda and attendee list going out
+                   within the hour."
+
+
+────────────────────────────────────────────────────────────────────────────────
+TABLE: safety_checklists  (2 records)
+────────────────────────────────────────────────────────────────────────────────
+Both checklists are for Goldman Sachs Tech Hub (Hyderabad — active construction site).
+
+Checklist 1:
+  project         : Goldman Sachs Tech Hub
+  inspection_date : ~10 days ago
+  inspector_name  : Rajesh Kumar (L&T Safety Officer)
+  overall_status  : Non-Compliant
+  created_by      : Sarah Jenkins
+
+Checklist 2:
+  project         : Goldman Sachs Tech Hub
+  inspection_date : ~3 days ago
+  inspector_name  : Sarah Jenkins (Embark PMO)
+  overall_status  : Completed
+  created_by      : Sarah Jenkins
+
+
+────────────────────────────────────────────────────────────────────────────────
+TABLE: safety_checklist_items  (14 records — 7 items per checklist)
+────────────────────────────────────────────────────────────────────────────────
+
+--- Checklist 1 (Non-Compliant — 10 days ago) ---
+
+Item 1: Fire exits clearly marked and unobstructed
+  is_compliant : true
+  notes        : (none)
+
+Item 2: PPE available and in use on site
+  is_compliant : true
+  notes        : (none)
+
+Item 3: Emergency contact numbers posted
+  is_compliant : true
+  notes        : (none)
+
+Item 4: Electrical panel and conduits safely enclosed
+  is_compliant : false  🔴
+  notes        : Exposed conduits found near server room entry on Floor 1. Non-compliant per IS:732.
+
+Item 5: First aid kit stocked and accessible
+  is_compliant : true
+  notes        : (none)
+
+Item 6: Hazardous material areas marked and segregated
+  is_compliant : true
+  notes        : (none)
+
+Item 7: Contractor site induction records up to date
+  is_compliant : true
+  notes        : (none)
+
+--- Checklist 2 (Completed — 3 days ago, post-remediation) ---
+
+Item 1: Fire exits clearly marked and unobstructed
+  is_compliant : true
+  notes        : (none)
+
+Item 2: PPE available and in use on site
+  is_compliant : true
+  notes        : (none)
+
+Item 3: Emergency contact numbers posted
+  is_compliant : true
+  notes        : (none)
+
+Item 4: Electrical panel and conduits safely enclosed
+  is_compliant : true
+  notes        : Remediation complete. All conduits enclosed. Verified with L&T site engineer.
+
+Item 5: First aid kit stocked and accessible
+  is_compliant : true
+  notes        : (none)
+
+Item 6: Hazardous material areas marked and segregated
+  is_compliant : true
+  notes        : (none)
+
+Item 7: Contractor site induction records up to date
+  is_compliant : true
+  notes        : (none)
+
+
+────────────────────────────────────────────────────────────────────────────────
+TABLE: notifications  (19 records)
+────────────────────────────────────────────────────────────────────────────────
+is_read: false = unread (shows badge), true = already read
+
+--- Michael Brown (client@demo.com — JPMorgan) ---
+
+1. type: Escalation Update | is_read: false
+   "Sarah Jenkins replied on: 'Civil Fit-Out Behind Schedule' — recovery plan attached"
+
+2. type: SLA Alert | is_read: false
+   "SLA BREACHED: Escalation 'Civil Fit-Out Behind Schedule' is overdue by 6 hours"
+
+3. type: Stage Update | is_read: true
+   "JPMorgan India GCC has advanced to Stage 3: Model Selection"
+
+4. type: PO Update | is_read: true
+   "PO-2025-001 (Khaitan & Co, Rs 42L) has been approved"
+
+--- David Kim (client2@demo.com — Goldman Sachs) ---
+
+5. type: Escalation Update | is_read: false
+   "Sarah Jenkins replied on: 'IT Infrastructure Budget Overrun' — technical justification shared"
+
+6. type: SLA Alert | is_read: false
+   "CRITICAL SLA: 'IT Infrastructure Budget Overrun' escalation is approaching breach — action needed"
+
+7. type: Milestone Alert | is_read: false
+   "Milestone OVERDUE: 'IT Network Cabling & Rack Installation' — blocking go-live timeline"
+
+8. type: Stage Update | is_read: true
+   "Goldman Sachs Tech Hub has advanced to Stage 5: Construction & Execution"
+
+--- Priya Mehta (client3@demo.com — Microsoft) ---
+
+9. type: Escalation Update | is_read: false
+   "Rahul Sharma replied on: 'Strategy Workshop Date Confirmation' — calendar invite sent"
+
+10. type: Stage Update | is_read: true
+    "Microsoft Innovation Centre has entered Stage 1: Discovery — your GCC setup journey begins"
+
+11. type: Vendor Update | is_read: true
+    "JLL India Pvt Ltd has been approved as your Real Estate partner"
+
+--- Sarah Jenkins (pmo@demo.com) ---
+
+12. type: Escalation | is_read: false
+    "David Kim raised a Critical escalation: 'IT Infrastructure Budget Overrun' — Goldman Sachs Tech Hub"
+
+13. type: Escalation | is_read: false
+    "Michael Brown raised a High escalation: 'Civil Fit-Out Behind Schedule' — JPMorgan India GCC"
+
+14. type: Compliance Alert | is_read: false
+    "Aon Hewitt India — GST Certificate EXPIRED. Vendor blocked from PO issuance."
+
+15. type: Compliance Alert | is_read: false
+    "Prestige Constructions — ISO 9001 Certificate expiring in 20 days. Renewal required."
+
+16. type: SLA Alert | is_read: false
+    "PO-2025-005 (Cisco, Rs 1.44 crore) approval SLA BREACHED — pending for 72 hours"
+
+--- Rahul Sharma (pmo2@demo.com) ---
+
+17. type: Escalation | is_read: false
+    "Assigned to you: 'Aon Hewitt GST Certificate Expired' — JPMorgan India GCC"
+
+18. type: Escalation | is_read: false
+    "Assigned to you: 'Strategy Workshop Date Confirmation' — Microsoft Innovation Centre"
+
+19. type: Milestone | is_read: false
+    "Milestone due in 10 days: 'India GCC Entry Strategy Workshop' — Microsoft Innovation Centre"
+
+
+────────────────────────────────────────────────────────────────────────────────
+TABLE: audit_logs  (12 records)
+────────────────────────────────────────────────────────────────────────────────
+old_value and new_value are stored as JSON strings.
+
+1.  user: Sarah Jenkins | action: Created Project
+    new_value: "JPMorgan India GCC — Bangalore"
+    created_at: ~100 days ago
+
+2.  user: Sarah Jenkins | action: Advanced Stage
+    old_value: "Discovery"   new_value: "Evaluation"
+    created_at: ~80 days ago
+
+3.  user: Sarah Jenkins | action: Advanced Stage
+    old_value: "Evaluation"  new_value: "Model Selection"
+    created_at: ~45 days ago
+
+4.  user: Sarah Jenkins | action: Approved Vendor
+    new_value: "Prestige Constructions — Approved"
+    created_at: ~90 days ago
+
+5.  user: Sarah Jenkins | action: Approved PO
+    new_value: "PO-2025-001 — Rs 42L approved"
+    created_at: ~70 days ago
+
+6.  user: Sarah Jenkins | action: Rejected PO
+    new_value: "PO-2025-003 — Rejected: vendor compliance expired"
+    created_at: ~20 days ago
+
+7.  user: Sarah Jenkins | action: Created Project
+    new_value: "Goldman Sachs Tech Hub — Hyderabad"
+    created_at: ~180 days ago
+
+8.  user: Rahul Sharma  | action: Created Project
+    new_value: "Microsoft Innovation Centre — Pune"
+    created_at: ~10 days ago
+
+9.  user: Michael Brown | action: Raised Escalation
+    new_value: "High: Civil Fit-Out Behind Schedule"
+    created_at: ~2 days ago
+
+10. user: David Kim     | action: Raised Escalation
+    new_value: "Critical: IT Infrastructure Budget Overrun"
+    created_at: ~1 day ago
+
+11. user: Rahul Sharma  | action: Resolved Escalation
+    old_value: "In Progress"
+    new_value: "Resolved: Safety Non-Compliance Floor 1"
+    created_at: ~6 days ago
+
+12. user: Rahul Sharma  | action: Approved Vendor
+    new_value: "JLL India Pvt Ltd — Approved"
+    created_at: ~18 days ago
+
+
+────────────────────────────────────────────────────────────────────────────────
+TABLE: attendance
+────────────────────────────────────────────────────────────────────────────────
+No pre-seeded records. This is a daily-log module.
+PMO users can add attendance entries from the app after logging in.
+Relevant for: Goldman Sachs Tech Hub (active construction site).
+
+Suggested schema fields:
+  project_id, date, worker_role, workers_expected, workers_present, logged_by
+
+
+────────────────────────────────────────────────────────────────────────────────
+LOGIN CREDENTIALS SUMMARY
+────────────────────────────────────────────────────────────────────────────────
+
+  Role    | Email                | App Password | Supabase Auth Password
+  --------|----------------------|--------------|---------------------------
+  PMO     | pmo@demo.com         | pmo          | pmo_EmbarkGCC2025!
+  PMO     | pmo2@demo.com        | pmo2         | pmo2_EmbarkGCC2025!
+  Client  | client@demo.com      | client       | client_EmbarkGCC2025!
+  Client  | client2@demo.com     | client2      | client2_EmbarkGCC2025!
+  Client  | client3@demo.com     | client3      | client3_EmbarkGCC2025!
+
+  PMO users see: all 3 projects, all vendors, all POs, all escalations,
+                 full reports, audit trail, safety checklists, attendance
+
+  client@demo.com  → sees JPMorgan India GCC only
+  client2@demo.com → sees Goldman Sachs Tech Hub only
+  client3@demo.com → sees Microsoft Innovation Centre only
+
+================================================================================
+END OF SEED DATA
+================================================================================
